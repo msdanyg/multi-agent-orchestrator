@@ -1,14 +1,17 @@
 """
 Agent Registry System
 Manages agent definitions, capabilities, and performance tracking
+Loads agent definitions from .claude/agents/*.md files
 """
 import json
 import os
+import yaml
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 from datetime import datetime
 from dataclasses import dataclass, asdict
 from enum import Enum
+import re
 
 
 class SkillLevel(Enum):
@@ -59,25 +62,113 @@ class AgentDefinition:
 class AgentRegistry:
     """Central registry for managing agents"""
 
-    def __init__(self, registry_path: str = "agents/registry.json"):
+    def __init__(self, registry_path: str = "agents/registry.json", agents_dir: str = ".claude/agents"):
         self.registry_path = Path(registry_path)
+        self.agents_dir = Path(agents_dir)
         self.agents: Dict[str, AgentDefinition] = {}
         self.load_registry()
 
     def load_registry(self):
-        """Load agent registry from disk"""
-        if self.registry_path.exists():
-            with open(self.registry_path, 'r') as f:
-                data = json.load(f)
-                for name, agent_data in data.items():
-                    metrics_data = agent_data.pop('metrics', {})
-                    metrics = AgentMetrics(**metrics_data)
-                    agent_data['metrics'] = metrics
-                    self.agents[name] = AgentDefinition(**agent_data)
+        """Load agent registry from .claude/agents/*.md files and metrics from registry.json"""
+        # Load agents from .claude/agents/*.md files
+        if self.agents_dir.exists() and self.agents_dir.is_dir():
+            self._load_agents_from_markdown()
         else:
-            # Initialize with default agents
+            # Fallback to old method if .claude/agents/ doesn't exist
+            if self.registry_path.exists():
+                self._load_from_json()
+            else:
+                # Initialize with default agents (old format)
+                self._initialize_default_agents()
+                self.save_registry()
+                return
+
+        # Load metrics from registry.json if it exists
+        if self.registry_path.exists():
+            self._load_metrics_from_json()
+
+    def _load_agents_from_markdown(self):
+        """Load agent definitions from .claude/agents/*.md files"""
+        md_files = list(self.agents_dir.glob("*.md"))
+
+        if not md_files:
+            # No agent files found, use defaults
             self._initialize_default_agents()
             self.save_registry()
+            return
+
+        for md_file in md_files:
+            try:
+                agent = self._parse_agent_markdown(md_file)
+                if agent:
+                    self.agents[agent.name] = agent
+            except Exception as e:
+                print(f"Warning: Failed to load agent from {md_file}: {e}")
+
+    def _parse_agent_markdown(self, md_file: Path) -> Optional[AgentDefinition]:
+        """Parse agent definition from markdown file with YAML frontmatter"""
+        with open(md_file, 'r') as f:
+            content = f.read()
+
+        # Extract YAML frontmatter
+        match = re.match(r'^---\n(.*?)\n---\n(.*)', content, re.DOTALL)
+        if not match:
+            print(f"Warning: No YAML frontmatter found in {md_file}")
+            return None
+
+        yaml_content = match.group(1)
+        markdown_content = match.group(2).strip()
+
+        # Parse YAML
+        try:
+            config = yaml.safe_load(yaml_content)
+        except yaml.YAMLError as e:
+            print(f"Warning: Failed to parse YAML in {md_file}: {e}")
+            return None
+
+        # Extract required fields
+        name = config.get('name')
+        if not name:
+            print(f"Warning: No 'name' field in {md_file}")
+            return None
+
+        # Create agent definition
+        agent = AgentDefinition(
+            name=name,
+            description=config.get('description', ''),
+            role=config.get('role', config.get('description', '')),
+            tools=config.get('allowed_tools', []),
+            capabilities=config.get('capabilities', []),
+            system_prompt=markdown_content,
+            model=config.get('model', 'claude-sonnet-4-5'),
+            skill_level=SkillLevel.NOVICE.value,
+            metrics=AgentMetrics()
+        )
+
+        return agent
+
+    def _load_from_json(self):
+        """Load agents from JSON file (legacy format)"""
+        with open(self.registry_path, 'r') as f:
+            data = json.load(f)
+            for name, agent_data in data.items():
+                metrics_data = agent_data.pop('metrics', {})
+                metrics = AgentMetrics(**metrics_data)
+                agent_data['metrics'] = metrics
+                self.agents[name] = AgentDefinition(**agent_data)
+
+    def _load_metrics_from_json(self):
+        """Load metrics for agents from registry.json"""
+        with open(self.registry_path, 'r') as f:
+            data = json.load(f)
+            for name, agent_data in data.items():
+                if name in self.agents:
+                    metrics_data = agent_data.get('metrics', {})
+                    if metrics_data:
+                        self.agents[name].metrics = AgentMetrics(**metrics_data)
+                    # Also load skill level from metrics
+                    if 'skill_level' in agent_data:
+                        self.agents[name].skill_level = agent_data['skill_level']
 
     def save_registry(self):
         """Persist registry to disk"""
