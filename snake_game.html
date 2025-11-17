@@ -254,7 +254,7 @@
         // Game state
         let snake = [{ x: 10, y: 10 }];
         let food = { x: 15, y: 15 };
-        let dx = 0;
+        let dx = 1;  // FIX Bug #5: Start moving right
         let dy = 0;
         let score = 0;
         let highScore = localStorage.getItem('snakeHighScore') || 0;
@@ -262,6 +262,7 @@
         let gameSpeed = 100;
         let isPaused = false;
         let isGameOver = false;
+        let speedIncreased = false;  // FIX Bug #2: Track speed increases
 
         // UI elements
         const startBtn = document.getElementById('startBtn');
@@ -291,22 +292,31 @@
         function handleKeyPress(e) {
             if (!gameLoop || isGameOver) return;
 
+            // FIX Bug #1: Prevent reversing into self
+            const newDir = {};
+
             switch(e.key) {
                 case 'ArrowUp':
-                    if (dy === 0) { dx = 0; dy = -1; }
+                    if (dy !== 1) { newDir.dx = 0; newDir.dy = -1; }
                     break;
                 case 'ArrowDown':
-                    if (dy === 0) { dx = 0; dy = 1; }
+                    if (dy !== -1) { newDir.dx = 0; newDir.dy = 1; }
                     break;
                 case 'ArrowLeft':
-                    if (dx === 0) { dx = -1; dy = 0; }
+                    if (dx !== 1) { newDir.dx = -1; newDir.dy = 0; }
                     break;
                 case 'ArrowRight':
-                    if (dx === 0) { dx = 1; dy = 0; }
+                    if (dx !== -1) { newDir.dx = 1; newDir.dy = 0; }
                     break;
                 case ' ':
                     togglePause();
                     break;
+            }
+
+            // Apply new direction if valid
+            if (newDir.dx !== undefined) {
+                dx = newDir.dx;
+                dy = newDir.dy;
             }
         }
 
@@ -326,24 +336,25 @@
         }
 
         function restartGame() {
-            // Reset game state
+            // FIX Bug #3: Clean state reset
             clearInterval(gameLoop);
             gameLoop = null;
             snake = [{ x: 10, y: 10 }];
             food = generateFood();
-            dx = 0;
+            dx = 1;  // Start moving right
             dy = 0;
             score = 0;
             gameSpeed = 100;
+            speedIncreased = false;
             isPaused = false;
             isGameOver = false;
 
-            // Update UI
+            // Update UI - ensure all states sync
             scoreEl.textContent = '0';
             speedEl.textContent = '1x';
             pauseBtn.textContent = 'Pause';
-            startBtn.disabled = false;
             pauseBtn.disabled = true;
+            startBtn.disabled = false;
             restartBtn.disabled = true;
 
             // Clear canvas
@@ -383,12 +394,15 @@
                     localStorage.setItem('snakeHighScore', highScore);
                 }
 
-                // Increase speed every 5 points
-                if (score % 5 === 0) {
+                // FIX Bug #2: Increase speed every 5 points (only once per milestone)
+                if (score % 5 === 0 && !speedIncreased) {
+                    speedIncreased = true;
                     gameSpeed = Math.max(50, gameSpeed - 10);
                     speedEl.textContent = `${(100 / gameSpeed).toFixed(1)}x`;
                     clearInterval(gameLoop);
                     gameLoop = setInterval(updateGame, gameSpeed);
+                } else if (score % 5 !== 0) {
+                    speedIncreased = false;  // Reset flag for next milestone
                 }
 
                 // Generate new food
@@ -510,14 +524,9 @@
         // Initial draw
         drawGame();
 
-        // Animation loop for food pulse
-        function animate() {
-            if (gameLoop && !isPaused) {
-                drawGame();
-            }
-            requestAnimationFrame(animate);
-        }
-        animate();
+        // FIX Bug #4: Remove redundant animation loop
+        // drawGame() is already called in updateGame() setInterval
+        // No need for separate requestAnimationFrame loop
     </script>
 </body>
 </html>
