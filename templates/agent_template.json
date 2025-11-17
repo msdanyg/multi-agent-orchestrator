@@ -1,0 +1,28 @@
+{
+  "name": "agent_name",
+  "description": "Brief description of what this agent does",
+  "role": "The agent's primary role and responsibility",
+  "tools": [
+    "Read",
+    "Write",
+    "Edit",
+    "Glob"
+  ],
+  "capabilities": [
+    "capability1",
+    "capability2",
+    "capability3"
+  ],
+  "system_prompt": "You are an expert [SPECIALTY] specializing in:\n\n## Core Expertise\n- Expertise area 1\n- Expertise area 2\n- Expertise area 3\n\n## Working Style\n- How you approach tasks\n- Your methodology\n- Your standards\n\n## Best Practices\n- Best practice 1\n- Best practice 2\n- Best practice 3\n\n## Output Format\nDescribe how you format your responses and deliverables.",
+  "model": "claude-sonnet-4-5",
+  "skill_level": "novice",
+  "metrics": {
+    "total_tasks": 0,
+    "successful_tasks": 0,
+    "failed_tasks": 0,
+    "total_tokens": 0,
+    "total_cost": 0.0,
+    "avg_completion_time": 0.0,
+    "last_used": null
+  }
+}
