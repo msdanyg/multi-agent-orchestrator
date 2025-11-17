@@ -1,0 +1,72 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment variables
+.env
+.env.local
+
+# Logs
+logs/*.log
+*.log
+
+# Workspace (user-specific)
+workspace/*/
+!workspace/shared/.gitkeep
+
+# TMUX sessions data
+agents/sessions.json
+
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+
+# User-specific agent registry
+agents/registry.json
+
+# Skills history (user-specific performance data)
+agents/skills_history.json
+
+# Temporary files
+*.tmp
+*.bak
+.cache/
+
+# OS
+Thumbs.db
+Desktop.ini
+
+# Claude local settings
+.claude/settings.local.json
