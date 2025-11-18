@@ -41,7 +41,8 @@ class WorkflowOrchestrator(Orchestrator):
         skills_path: str = "agents/skills_history.json",
         max_parallel_agents: int = 5,
         enable_workflows: bool = True,
-        workflow_match_threshold: int = 5  # Minimum score to use workflow
+        workflow_match_threshold: int = 5,  # Minimum score to use workflow
+        execution_mode: str = "independent"  # "independent" or "interactive"
     ):
         # Initialize base orchestrator
         super().__init__(
@@ -54,6 +55,7 @@ class WorkflowOrchestrator(Orchestrator):
         # Initialize workflow components
         self.enable_workflows = enable_workflows
         self.workflow_match_threshold = workflow_match_threshold
+        self.execution_mode = execution_mode
 
         if self.enable_workflows:
             self.workflow_executor = WorkflowExecutor()
@@ -61,7 +63,8 @@ class WorkflowOrchestrator(Orchestrator):
             self.workflow_learner = WorkflowLearner()
             self.project_manager = ProjectManager()
 
-            print("✅ Workflow system enabled")
+            mode_emoji = "🤖" if execution_mode == "independent" else "👤"
+            print(f"✅ Workflow system enabled ({mode_emoji} {execution_mode} mode)")
 
     async def execute_task(
         self,
@@ -174,6 +177,15 @@ class WorkflowOrchestrator(Orchestrator):
         print(f"📋 Steps: {len(workflow.get('steps', []))}")
         print(f"⏱️  Est. Duration: {self._format_duration(workflow.get('estimated_duration', 0))}\n")
 
+        # Present plan and ask for approval in interactive mode
+        if not self._present_plan({'workflow': workflow}):
+            return {
+                'task_id': 'rejected',
+                'success': False,
+                'error': 'User rejected execution plan',
+                'execution_mode': 'workflow'
+            }
+
         # Start tracking
         exec_id = self.workflow_history.start_execution(
             workflow_name=workflow['name'],
@@ -234,6 +246,17 @@ class WorkflowOrchestrator(Orchestrator):
                 print(f"   ⏩ Skipping optional step")
                 self.workflow_history.skip_step(exec_id, step_id, "Optional step skipped by user")
                 continue
+
+            # Ask for step approval in interactive mode
+            step_approval = self._ask_step_approval(step, i, len(steps))
+            if step_approval is None:  # User chose to skip
+                print(f"   ⏩ Skipping step (user request)")
+                self.workflow_history.skip_step(exec_id, step_id, "Skipped by user in interactive mode")
+                continue
+            elif step_approval is False:  # User rejected
+                print(f"   ❌ Step rejected by user")
+                failed_steps += 1
+                break
 
             # Start step tracking
             self.workflow_history.start_step(exec_id, step_id, step_name, agent_name)
@@ -518,6 +541,143 @@ Please fix the issues mentioned above and regenerate the files.
                     workflow = match['workflow']
                     relevance_icon = {'high': '🟢', 'medium': '🟡', 'low': '🔴'}.get(match['relevance'], '⚪')
                     print(f"   {relevance_icon} {workflow['name']} (Score: {match['score']}, Relevance: {match['relevance']})")
+
+    # Interactive Mode Methods
+
+    def _ask_clarification(self, question: str, options: List[str] = None) -> str:
+        """Ask user for clarification in interactive mode."""
+        if self.execution_mode != "interactive":
+            return options[0] if options else ""
+
+        print(f"\n❓ {question}")
+
+        if options:
+            for i, option in enumerate(options, 1):
+                print(f"   {i}. {option}")
+
+            while True:
+                try:
+                    choice = input("\n👤 Your choice (number or text): ").strip()
+
+                    # Check if numeric choice
+                    if choice.isdigit():
+                        idx = int(choice) - 1
+                        if 0 <= idx < len(options):
+                            return options[idx]
+
+                    # Check if text matches an option
+                    for option in options:
+                        if choice.lower() in option.lower():
+                            return option
+
+                    print("   ❌ Invalid choice. Please try again.")
+                except KeyboardInterrupt:
+                    print("\n   ⚠️  Using default option")
+                    return options[0]
+        else:
+            return input("\n👤 Your answer: ").strip()
+
+    def _present_plan(self, plan: Dict[str, Any]) -> bool:
+        """Present execution plan and ask for approval in interactive mode."""
+        if self.execution_mode == "independent":
+            return True  # Auto-approve in independent mode
+
+        print(f"\n{'='*80}")
+        print("📋 EXECUTION PLAN")
+        print(f"{'='*80}")
+
+        # Show workflow if applicable
+        if 'workflow' in plan:
+            workflow = plan['workflow']
+            print(f"Workflow: {workflow.get('name', 'N/A')}")
+            print(f"Description: {workflow.get('description', 'N/A')}")
+            print(f"Estimated Duration: {self._format_duration(workflow.get('estimated_duration', 0))}")
+            print(f"\nSteps ({len(workflow.get('steps', []))}):")
+            for i, step in enumerate(workflow.get('steps', []), 1):
+                required = "✓ Required" if step.get('required') else "○ Optional"
+                print(f"  {i}. {step.get('name')} ({step.get('agent')}) - {required}")
+
+        # Show agents if no workflow
+        elif 'agents' in plan:
+            print("Agents to be used:")
+            for agent in plan['agents']:
+                print(f"  • {agent.get('name')}: {agent.get('description')}")
+
+        print(f"{'='*80}")
+
+        while True:
+            response = input("\n👤 Approve this plan? (yes/no/modify): ").strip().lower()
+
+            if response in ['y', 'yes']:
+                print("   ✅ Plan approved!")
+                return True
+            elif response in ['n', 'no']:
+                print("   ❌ Plan rejected. Exiting.")
+                return False
+            elif response in ['m', 'modify']:
+                print("   💡 Modification not yet implemented. Proceeding with plan.")
+                return True
+            else:
+                print("   ❌ Invalid input. Please answer yes, no, or modify.")
+
+    def _ask_step_approval(self, step: Dict[str, Any], step_num: int, total_steps: int) -> bool:
+        """Ask for approval before executing a step in interactive mode."""
+        if self.execution_mode != "interactive":
+            return True  # Auto-approve in independent mode
+
+        print(f"\n{'─'*80}")
+        print(f"📍 Step {step_num}/{total_steps}: {step.get('name')}")
+        print(f"   Agent: {step.get('agent')}")
+        print(f"   Action: {step.get('action', 'N/A')[:150]}...")
+        print(f"{'─'*80}")
+
+        while True:
+            response = input("\n👤 Proceed with this step? (yes/no/skip): ").strip().lower()
+
+            if response in ['y', 'yes']:
+                return True
+            elif response in ['n', 'no']:
+                print("   ❌ Step rejected. Stopping workflow.")
+                return False
+            elif response in ['s', 'skip']:
+                if not step.get('required', True):
+                    print("   ⏩ Skipping optional step.")
+                    return None  # None means skip
+                else:
+                    print("   ⚠️  Cannot skip required step.")
+            else:
+                print("   ❌ Invalid input. Please answer yes, no, or skip.")
+
+    def _show_step_result(self, step: Dict[str, Any], result: Dict[str, Any]):
+        """Show step result and ask for feedback in interactive mode."""
+        if self.execution_mode != "interactive":
+            return
+
+        success = result.get('success', False)
+        status_emoji = "✅" if success else "❌"
+
+        print(f"\n{status_emoji} Step Result: {step.get('name')}")
+
+        if success:
+            files_created = result.get('files_created', [])
+            if files_created:
+                print(f"   📄 Files created: {', '.join(files_created)}")
+
+            # Ask if user wants to review
+            review = input("\n👤 Review output before continuing? (yes/no): ").strip().lower()
+            if review in ['y', 'yes']:
+                if result.get('output'):
+                    print(f"\n{'─'*80}")
+                    print(result['output'][:500])
+                    print(f"{'─'*80}")
+                    input("\nPress Enter to continue...")
+        else:
+            error = result.get('error', 'Unknown error')
+            print(f"   ❌ Error: {error}")
+
+            # Ask how to proceed
+            response = input("\n👤 How to proceed? (retry/skip/abort): ").strip().lower()
+            return response
 
 
 # Backwards compatibility alias

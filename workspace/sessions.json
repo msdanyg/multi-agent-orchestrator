@@ -366,5 +366,13 @@
     "created_at": "2025-11-17T22:09:24.290789",
     "status": "failed",
     "working_dir": "projects/todo-test"
+  },
+  "agent-designer-20251117_222114_860832-1763436074": {
+    "session_id": "agent-designer-20251117_222114_860832-1763436074",
+    "agent_name": "designer",
+    "task_id": "20251117_222114_860832",
+    "created_at": "2025-11-17T22:21:14.994042",
+    "status": "failed",
+    "working_dir": "projects/slinnkk"
   }
 }

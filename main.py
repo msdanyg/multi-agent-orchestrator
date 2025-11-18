@@ -21,7 +21,7 @@ from agents.orchestrator_workflow import WorkflowOrchestrator
 
 async def run_task(task: str, max_agents: int = 3, use_tmux: bool = True,
                   enable_workflows: bool = True, force_workflow: str = None,
-                  project_name: str = None):
+                  project_name: str = None, execution_mode: str = "independent"):
     """Execute a task using the multi-agent system"""
     try:
         # Use workflow-enabled orchestrator if workflows are enabled
@@ -31,7 +31,8 @@ async def run_task(task: str, max_agents: int = 3, use_tmux: bool = True,
                 registry_path="agents/registry.json",
                 skills_path="agents/skills_history.json",
                 max_parallel_agents=5,
-                enable_workflows=True
+                enable_workflows=True,
+                execution_mode=execution_mode
             )
         else:
             orchestrator = Orchestrator(
@@ -214,6 +215,13 @@ Examples:
         type=str,
         help='Execute in specific project directory (creates if needed)'
     )
+    task_parser.add_argument(
+        '--mode',
+        type=str,
+        choices=['independent', 'interactive'],
+        default='independent',
+        help='Execution mode: independent (default) runs autonomously, interactive asks for approval'
+    )
 
     # Status command
     subparsers.add_parser('status', help='Show system status')
@@ -244,7 +252,8 @@ Examples:
             use_tmux=not args.no_tmux,
             enable_workflows=not args.no_workflows,
             force_workflow=args.workflow,
-            project_name=args.project
+            project_name=args.project,
+            execution_mode=args.mode
         ))
         sys.exit(0 if result.get('success') else 1)
 
