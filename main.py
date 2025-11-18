@@ -16,22 +16,35 @@ except ImportError:
     pass
 
 from agents import Orchestrator
+from agents.orchestrator_workflow import WorkflowOrchestrator
 
 
-async def run_task(task: str, max_agents: int = 3, use_tmux: bool = True):
+async def run_task(task: str, max_agents: int = 3, use_tmux: bool = True,
+                  enable_workflows: bool = True, force_workflow: str = None):
     """Execute a task using the multi-agent system"""
     try:
-        orchestrator = Orchestrator(
-            workspace_dir="workspace",
-            registry_path="agents/registry.json",
-            skills_path="agents/skills_history.json",
-            max_parallel_agents=5
-        )
+        # Use workflow-enabled orchestrator if workflows are enabled
+        if enable_workflows:
+            orchestrator = WorkflowOrchestrator(
+                workspace_dir="workspace",
+                registry_path="agents/registry.json",
+                skills_path="agents/skills_history.json",
+                max_parallel_agents=5,
+                enable_workflows=True
+            )
+        else:
+            orchestrator = Orchestrator(
+                workspace_dir="workspace",
+                registry_path="agents/registry.json",
+                skills_path="agents/skills_history.json",
+                max_parallel_agents=5
+            )
 
         result = await orchestrator.execute_task(
             task_description=task,
             max_agents=max_agents,
-            use_tmux=use_tmux
+            use_tmux=use_tmux,
+            force_workflow=force_workflow if enable_workflows else None
         )
 
         return result
@@ -124,8 +137,14 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Execute a task
-  python main.py task "Refactor the authentication module to use JWT tokens"
+  # Execute a task (with workflow matching)
+  python main.py task "Build a web application"
+
+  # Force use of specific workflow
+  python main.py task "Build calculator app" --workflow web-app-development
+
+  # Execute without workflow matching (direct agent selection)
+  python main.py task "Debug authentication" --no-workflows
 
   # Show system status
   python main.py status
@@ -157,6 +176,16 @@ Examples:
         action='store_true',
         help='Execute without TMUX sessions'
     )
+    task_parser.add_argument(
+        '--no-workflows',
+        action='store_true',
+        help='Disable workflow matching (use direct agent selection)'
+    )
+    task_parser.add_argument(
+        '--workflow',
+        type=str,
+        help='Force use of specific workflow (by name)'
+    )
 
     # Status command
     subparsers.add_parser('status', help='Show system status')
@@ -184,7 +213,9 @@ Examples:
         result = asyncio.run(run_task(
             task=args.description,
             max_agents=args.max_agents,
-            use_tmux=not args.no_tmux
+            use_tmux=not args.no_tmux,
+            enable_workflows=not args.no_workflows,
+            force_workflow=args.workflow
         ))
         sys.exit(0 if result.get('success') else 1)
 
