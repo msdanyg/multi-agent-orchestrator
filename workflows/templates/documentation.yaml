@@ -1,0 +1,213 @@
+name: documentation
+version: 1.0.0
+description: Comprehensive documentation creation workflow for projects
+author: system
+created: 2025-01-17
+updated: 2025-01-17
+
+# Task classification
+task_types:
+  - create documentation
+  - write docs
+  - document project
+  - create readme
+  - documentation
+
+# Required agents
+agents_required:
+  - docs_writer
+
+# Optional agents
+agents_optional:
+  - code_analyst
+  - researcher
+
+# Workflow steps
+steps:
+  - id: analyze_project
+    name: Analyze Project Structure
+    agent: code_analyst
+    action: |
+      Analyze project to understand:
+      - Project purpose and scope
+      - Key features and functionality
+      - Technical architecture
+      - Dependencies and requirements
+      - Target audience
+    required: true
+    timeout: 300
+    outputs:
+      - PROJECT_ANALYSIS.md
+
+  - id: readme
+    name: Create README
+    agent: docs_writer
+    action: |
+      Create comprehensive README.md:
+      - Project title and description
+      - Features list
+      - Installation instructions
+      - Usage guide with examples
+      - Configuration options
+      - Troubleshooting section
+      - Credits and license
+      - Badges and shields
+    required: true
+    depends_on: [analyze_project]
+    inputs:
+      - PROJECT_ANALYSIS.md
+    outputs:
+      - README.md
+    validation:
+      - type: output_exists
+        file: README.md
+      - type: min_lines
+        file: README.md
+        value: 50
+
+  - id: api_docs
+    name: Create API Documentation
+    agent: docs_writer
+    action: |
+      Document all APIs and interfaces:
+      - Function/method signatures
+      - Parameters and return values
+      - Usage examples
+      - Error handling
+      - Edge cases
+    required: false
+    depends_on: [analyze_project]
+    outputs:
+      - API.md
+
+  - id: user_guide
+    name: Create User Guide
+    agent: docs_writer
+    action: |
+      Write detailed user guide:
+      - Getting started tutorial
+      - Step-by-step workflows
+      - Feature explanations
+      - Screenshots/diagrams
+      - Best practices
+      - Common use cases
+    required: false
+    depends_on: [readme]
+    outputs:
+      - USER_GUIDE.md
+
+  - id: developer_guide
+    name: Create Developer Guide
+    agent: docs_writer
+    action: |
+      Write developer documentation:
+      - Project setup for development
+      - Architecture overview
+      - Code organization
+      - Contribution guidelines
+      - Testing procedures
+      - Deployment process
+    required: false
+    depends_on: [analyze_project]
+    outputs:
+      - DEVELOPER_GUIDE.md
+
+  - id: changelog
+    name: Create CHANGELOG
+    agent: docs_writer
+    action: |
+      Create version history:
+      - Version numbers
+      - Release dates
+      - Added features
+      - Bug fixes
+      - Breaking changes
+      - Migration guides
+    required: false
+    outputs:
+      - CHANGELOG.md
+
+  - id: proof_read
+    name: Proof-read Documentation
+    agent: docs_writer
+    action: |
+      Review all documentation for:
+      - Grammar and spelling
+      - Clarity and consistency
+      - Completeness
+      - Formatting
+      - Link validity
+      - Code example accuracy
+    required: true
+    depends_on: [readme]
+    inputs:
+      - README.md
+      - API.md
+      - USER_GUIDE.md
+      - DEVELOPER_GUIDE.md
+      - CHANGELOG.md
+    outputs:
+      - DOCUMENTATION_REVIEW.md
+
+# Hooks
+hooks:
+  pre_workflow:
+    - action: check_existing_docs
+      description: Check for existing documentation to preserve
+
+  post_workflow:
+    - action: validate_markdown
+      description: Validate markdown syntax in all docs
+
+    - action: check_links
+      description: Verify all links in documentation
+
+    - action: git_commit
+      description: Commit documentation
+      message: |
+        Complete documentation workflow
+
+        Comprehensive documentation created and proof-read.
+
+        📝 Documentation Generated
+
+  on_error:
+    - action: save_partial_docs
+      description: Save completed documentation even on error
+
+# Quality gates
+quality_gates:
+  - name: readme_completeness
+    after_step: readme
+    type: automatic
+    condition: has_all_sections
+    required: true
+
+  - name: documentation_review
+    after_step: proof_read
+    type: manual
+    description: User reviews documentation quality
+    required: false
+
+# Learning configuration
+learning:
+  enabled: true
+  track_metrics:
+    - documentation_length
+    - user_feedback
+    - update_frequency
+  improve_on:
+    - content_quality
+    - example_relevance
+    - clarity_improvement
+
+# Metadata
+tags:
+  - documentation
+  - readme
+  - guides
+  - technical-writing
+priority: medium
+usage_count: 0
+success_rate: 0.0
+estimated_duration: 900  # 15 minutes

@@ -1,0 +1,261 @@
+name: web-app-development
+version: 1.0.0
+description: Complete workflow for building web applications from design to deployment
+author: system
+created: 2025-01-17
+updated: 2025-01-17
+
+# Task classification
+task_types:
+  - design web app
+  - build web app
+  - create website
+  - develop ui
+  - new web project
+  - build app
+  - create app
+  - develop application
+
+# Required agents for this workflow
+agents_required:
+  - designer
+  - code_writer
+  - qa_tester
+
+# Optional agents
+agents_optional:
+  - code_analyst
+  - security
+  - docs_writer
+
+# Workflow steps
+steps:
+  - id: design
+    name: Create Design Specifications
+    agent: designer
+    action: |
+      Create comprehensive UI/UX design specifications including:
+      - User interface layout and components
+      - Color scheme and typography
+      - Responsive design breakpoints
+      - Interaction patterns
+      - Accessibility considerations
+      - User flow diagrams
+    required: true
+    timeout: 300
+    outputs:
+      - DESIGN.md
+    validation:
+      - type: output_exists
+        file: DESIGN.md
+      - type: min_lines
+        file: DESIGN.md
+        value: 100
+
+  - id: implement
+    name: Implement Application
+    agent: code_writer
+    action: |
+      Implement the application based on design specifications:
+      - Create semantic HTML structure
+      - Write modular, maintainable CSS
+      - Implement JavaScript functionality
+      - Ensure responsive design
+      - Follow accessibility best practices
+      - Add proper error handling
+      - Include inline documentation
+    required: true
+    depends_on: [design]
+    inputs:
+      - DESIGN.md
+    outputs:
+      - index.html
+    timeout: 600
+    validation:
+      - type: output_exists
+        file: index.html
+      - type: syntax_valid
+        language: html
+
+  - id: code_review
+    name: Code Quality Review
+    agent: code_analyst
+    action: |
+      Review code for:
+      - Code quality and best practices
+      - Performance optimization opportunities
+      - Potential bugs or issues
+      - Maintainability and readability
+      - Proper error handling
+      - Code documentation
+    required: false
+    depends_on: [implement]
+    inputs:
+      - index.html
+      - DESIGN.md
+    outputs:
+      - CODE_REVIEW.md
+
+  - id: security_check
+    name: Security Audit
+    agent: security
+    action: |
+      Perform security review:
+      - Check for XSS vulnerabilities
+      - Validate input handling
+      - Review authentication/authorization if present
+      - Check for insecure data storage
+      - Verify secure API calls
+      - Check dependency security
+    required: false
+    depends_on: [implement]
+    inputs:
+      - index.html
+    outputs:
+      - SECURITY_AUDIT.md
+
+  - id: testing
+    name: Quality Assurance Testing
+    agent: qa_tester
+    action: |
+      Test the application thoroughly:
+      - Functional testing (all features work)
+      - UI/UX testing (matches design)
+      - Cross-browser compatibility
+      - Responsive design testing
+      - Accessibility testing (WCAG compliance)
+      - Edge case testing
+      - Error handling validation
+    required: true
+    depends_on: [implement]
+    inputs:
+      - index.html
+      - DESIGN.md
+    outputs:
+      - QA_REPORT.md
+    validation:
+      - type: custom
+        check: all_tests_pass
+
+  - id: documentation
+    name: Create Documentation
+    agent: docs_writer
+    action: |
+      Create comprehensive documentation:
+      - README with clear usage instructions
+      - Complete feature list
+      - Installation/setup guide
+      - Browser compatibility notes
+      - Troubleshooting section
+      - Credits and license
+    required: true
+    depends_on: [implement, testing]
+    inputs:
+      - index.html
+      - DESIGN.md
+      - QA_REPORT.md
+    outputs:
+      - README.md
+    validation:
+      - type: output_exists
+        file: README.md
+      - type: min_lines
+        file: README.md
+        value: 50
+
+# Hooks (pre/post actions)
+hooks:
+  pre_workflow:
+    - action: check_git_status
+      description: Ensure clean git state or warn user
+      continue_on_fail: true
+
+    - action: create_backup
+      description: Create backup of existing files
+      continue_on_fail: true
+
+  post_workflow:
+    - action: proof_read
+      agent: docs_writer
+      description: Proof-read all markdown documentation
+      files:
+        - "*.md"
+
+    - action: format_code
+      description: Format HTML/CSS/JS code
+      continue_on_fail: true
+
+    - action: git_add
+      description: Stage all generated files
+      files:
+        - DESIGN.md
+        - index.html
+        - README.md
+        - "*.md"
+
+    - action: git_commit
+      description: Commit all changes with descriptive message
+      message: |
+        Complete {workflow.name} workflow
+
+        Generated files:
+        {outputs}
+
+        🤖 Generated with Multi-Agent Orchestrator
+
+  on_error:
+    - action: save_state
+      description: Save workflow state for recovery
+
+    - action: notify_user
+      description: Alert user of failure with error details
+
+# Quality gates
+quality_gates:
+  - name: design_approval
+    after_step: design
+    type: manual
+    description: User reviews and approves design specifications
+    required: false
+
+  - name: code_review_check
+    after_step: code_review
+    type: automatic
+    condition: no_critical_issues
+    required: false
+
+  - name: security_check
+    after_step: security_check
+    type: automatic
+    condition: no_high_severity_issues
+    required: false
+
+  - name: all_tests_pass
+    after_step: testing
+    type: automatic
+    condition: tests_passed
+    required: true
+
+# Learning configuration
+learning:
+  enabled: true
+  track_metrics:
+    - step_duration
+    - step_success_rate
+    - user_modifications
+    - validation_failures
+  improve_on:
+    - step_order_optimization
+    - timeout_adjustment
+    - validation_refinement
+
+# Metadata
+tags:
+  - web-development
+  - frontend
+  - ui-ux
+  - full-stack
+priority: high
+usage_count: 0
+success_rate: 0.0
+estimated_duration: 1800  # 30 minutes

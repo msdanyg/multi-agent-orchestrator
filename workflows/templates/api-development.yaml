@@ -1,0 +1,239 @@
+name: api-development
+version: 1.0.0
+description: Complete workflow for designing, implementing, and documenting APIs
+author: system
+created: 2025-01-17
+updated: 2025-01-17
+
+# Task classification
+task_types:
+  - design api
+  - create api
+  - build api
+  - develop api
+  - api development
+  - rest api
+  - graphql api
+
+# Required agents
+agents_required:
+  - api_expert
+  - code_writer
+
+# Optional agents
+agents_optional:
+  - security
+  - qa_tester
+  - docs_writer
+
+# Workflow steps
+steps:
+  - id: api_design
+    name: Design API Specification
+    agent: api_expert
+    action: |
+      Create comprehensive API design:
+      - API architecture (REST/GraphQL/etc)
+      - Endpoint structure
+      - Request/response formats
+      - Authentication strategy
+      - Error handling approach
+      - Rate limiting strategy
+      - Versioning approach
+      - OpenAPI/Swagger specification
+    required: true
+    timeout: 400
+    outputs:
+      - API_DESIGN.md
+      - openapi.yaml
+    validation:
+      - type: output_exists
+        file: API_DESIGN.md
+
+  - id: implement_api
+    name: Implement API
+    agent: code_writer
+    action: |
+      Implement the API based on design:
+      - Create endpoint handlers
+      - Implement authentication/authorization
+      - Add input validation
+      - Implement error handling
+      - Add logging and monitoring
+      - Implement rate limiting
+      - Add API documentation endpoints
+    required: true
+    depends_on: [api_design]
+    inputs:
+      - API_DESIGN.md
+      - openapi.yaml
+    outputs:
+      - api/
+      - server.py
+    timeout: 900
+    validation:
+      - type: syntax_valid
+        language: python
+
+  - id: security_review
+    name: API Security Review
+    agent: security
+    action: |
+      Review API security:
+      - Authentication implementation
+      - Authorization controls
+      - Input validation
+      - SQL injection prevention
+      - XSS prevention
+      - CSRF protection
+      - Rate limiting effectiveness
+      - Data encryption
+      - API key security
+    required: true
+    depends_on: [implement_api]
+    inputs:
+      - API_DESIGN.md
+      - api/
+    outputs:
+      - API_SECURITY_REVIEW.md
+
+  - id: api_testing
+    name: API Testing
+    agent: qa_tester
+    action: |
+      Comprehensive API testing:
+      - Endpoint functionality testing
+      - Authentication testing
+      - Authorization testing
+      - Input validation testing
+      - Error handling testing
+      - Performance testing
+      - Load testing
+      - Integration testing
+    required: true
+    depends_on: [implement_api]
+    inputs:
+      - API_DESIGN.md
+      - openapi.yaml
+    outputs:
+      - API_TEST_REPORT.md
+    validation:
+      - type: custom
+        check: all_tests_pass
+
+  - id: api_documentation
+    name: Create API Documentation
+    agent: docs_writer
+    action: |
+      Create comprehensive API documentation:
+      - Getting started guide
+      - Authentication guide
+      - Endpoint reference
+      - Request/response examples
+      - Error code reference
+      - SDK/client library usage
+      - Postman collection
+      - Rate limiting details
+      - Changelog
+    required: true
+    depends_on: [implement_api, api_testing]
+    inputs:
+      - API_DESIGN.md
+      - openapi.yaml
+      - API_TEST_REPORT.md
+    outputs:
+      - API_DOCUMENTATION.md
+      - POSTMAN_COLLECTION.json
+    validation:
+      - type: output_exists
+        file: API_DOCUMENTATION.md
+
+  - id: integration_examples
+    name: Create Integration Examples
+    agent: code_writer
+    action: |
+      Create example integrations:
+      - JavaScript/Node.js examples
+      - Python examples
+      - cURL examples
+      - Common use case examples
+      - Error handling examples
+    required: false
+    depends_on: [api_documentation]
+    outputs:
+      - examples/
+
+# Hooks
+hooks:
+  pre_workflow:
+    - action: setup_dev_environment
+      description: Ensure development environment is ready
+
+  post_workflow:
+    - action: validate_openapi
+      description: Validate OpenAPI specification
+
+    - action: generate_api_client
+      description: Generate client libraries if needed
+
+    - action: proof_read
+      agent: docs_writer
+      description: Proof-read API documentation
+
+    - action: git_commit
+      description: Commit API implementation and docs
+      message: |
+        Complete API development workflow
+
+        API implemented, tested, and documented.
+
+        🔌 API Development Complete
+
+  on_error:
+    - action: rollback_changes
+      description: Rollback incomplete API changes
+
+# Quality gates
+quality_gates:
+  - name: design_approval
+    after_step: api_design
+    type: manual
+    description: Stakeholders approve API design
+    required: false
+
+  - name: security_cleared
+    after_step: security_review
+    type: automatic
+    condition: no_high_severity_issues
+    required: true
+
+  - name: all_tests_pass
+    after_step: api_testing
+    type: automatic
+    condition: tests_passed
+    required: true
+
+# Learning configuration
+learning:
+  enabled: true
+  track_metrics:
+    - api_design_time
+    - implementation_time
+    - test_coverage
+    - security_issues_found
+  improve_on:
+    - design_patterns
+    - security_best_practices
+    - testing_coverage
+
+# Metadata
+tags:
+  - api
+  - backend
+  - rest
+  - graphql
+  - integration
+priority: high
+usage_count: 0
+success_rate: 0.0
+estimated_duration: 2400  # 40 minutes

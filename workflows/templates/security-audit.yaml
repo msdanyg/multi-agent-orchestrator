@@ -1,0 +1,184 @@
+name: security-audit
+version: 1.0.0
+description: Comprehensive security audit workflow for applications and code
+author: system
+created: 2025-01-17
+updated: 2025-01-17
+
+# Task classification
+task_types:
+  - security audit
+  - security review
+  - security check
+  - vulnerability scan
+  - penetration test
+  - security assessment
+
+# Required agents
+agents_required:
+  - security
+
+# Optional agents
+agents_optional:
+  - code_analyst
+  - docs_writer
+
+# Workflow steps
+steps:
+  - id: code_analysis
+    name: Static Code Analysis
+    agent: code_analyst
+    action: |
+      Perform static code analysis:
+      - Identify potential security vulnerabilities
+      - Check for insecure coding patterns
+      - Review dependency versions
+      - Check for hardcoded secrets
+      - Analyze error handling
+    required: true
+    timeout: 300
+    outputs:
+      - STATIC_ANALYSIS.md
+    validation:
+      - type: output_exists
+        file: STATIC_ANALYSIS.md
+
+  - id: vulnerability_scan
+    name: Vulnerability Assessment
+    agent: security
+    action: |
+      Comprehensive vulnerability scan:
+      - OWASP Top 10 assessment
+      - XSS vulnerability check
+      - SQL injection testing
+      - CSRF protection review
+      - Authentication/authorization review
+      - Session management check
+      - Input validation review
+      - Output encoding verification
+    required: true
+    depends_on: [code_analysis]
+    inputs:
+      - STATIC_ANALYSIS.md
+    outputs:
+      - VULNERABILITY_REPORT.md
+    timeout: 600
+    validation:
+      - type: output_exists
+        file: VULNERABILITY_REPORT.md
+
+  - id: penetration_test
+    name: Penetration Testing
+    agent: security
+    action: |
+      Simulated penetration testing:
+      - Attempt common attack vectors
+      - Test authentication bypass
+      - Check authorization controls
+      - Test input sanitization
+      - Verify secure data transmission
+      - Check for information disclosure
+    required: false
+    depends_on: [vulnerability_scan]
+    outputs:
+      - PENTEST_REPORT.md
+
+  - id: security_report
+    name: Generate Security Report
+    agent: security
+    action: |
+      Create comprehensive security audit report:
+      - Executive summary
+      - Findings categorized by severity
+      - Detailed vulnerability descriptions
+      - Remediation recommendations
+      - Security score
+      - Compliance checklist
+    required: true
+    depends_on: [vulnerability_scan]
+    inputs:
+      - STATIC_ANALYSIS.md
+      - VULNERABILITY_REPORT.md
+      - PENTEST_REPORT.md
+    outputs:
+      - SECURITY_AUDIT.md
+    validation:
+      - type: output_exists
+        file: SECURITY_AUDIT.md
+      - type: min_lines
+        file: SECURITY_AUDIT.md
+        value: 100
+
+  - id: documentation
+    name: Document Security Findings
+    agent: docs_writer
+    action: |
+      Create security documentation:
+      - Security best practices guide
+      - Remediation checklist
+      - Security testing procedures
+      - Secure deployment guidelines
+    required: false
+    depends_on: [security_report]
+    outputs:
+      - SECURITY_GUIDE.md
+
+# Hooks
+hooks:
+  pre_workflow:
+    - action: backup_code
+      description: Backup code before security testing
+
+  post_workflow:
+    - action: proof_read
+      agent: docs_writer
+      description: Proof-read all security documentation
+
+    - action: git_commit
+      description: Commit security audit results
+      message: |
+        Complete security audit workflow
+
+        Security audit completed with findings documented.
+
+        🔒 Security Audit Report Generated
+
+  on_error:
+    - action: save_findings
+      description: Save partial findings even on error
+
+# Quality gates
+quality_gates:
+  - name: no_critical_vulnerabilities
+    after_step: vulnerability_scan
+    type: automatic
+    condition: no_critical_severity
+    required: true
+
+  - name: security_score_threshold
+    after_step: security_report
+    type: automatic
+    condition: security_score >= 70
+    required: false
+
+# Learning configuration
+learning:
+  enabled: true
+  track_metrics:
+    - vulnerabilities_found
+    - severity_distribution
+    - remediation_time
+  improve_on:
+    - detection_accuracy
+    - false_positive_reduction
+
+# Metadata
+tags:
+  - security
+  - audit
+  - vulnerability
+  - compliance
+priority: high
+usage_count: 0
+success_rate: 0.0
+estimated_duration: 1200  # 20 minutes

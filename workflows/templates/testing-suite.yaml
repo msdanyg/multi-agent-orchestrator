@@ -1,0 +1,240 @@
+name: testing-suite
+version: 1.0.0
+description: Comprehensive testing workflow covering unit, integration, and end-to-end tests
+author: system
+created: 2025-01-17
+updated: 2025-01-17
+
+# Task classification
+task_types:
+  - test application
+  - create tests
+  - testing suite
+  - qa testing
+  - quality assurance
+  - test coverage
+
+# Required agents
+agents_required:
+  - qa_tester
+
+# Optional agents
+agents_optional:
+  - code_analyst
+  - docs_writer
+
+# Workflow steps
+steps:
+  - id: test_plan
+    name: Create Test Plan
+    agent: qa_tester
+    action: |
+      Develop comprehensive test plan:
+      - Test scope and objectives
+      - Test cases for all features
+      - Test data requirements
+      - Testing environment setup
+      - Success criteria
+      - Risk assessment
+    required: true
+    timeout: 300
+    outputs:
+      - TEST_PLAN.md
+    validation:
+      - type: output_exists
+        file: TEST_PLAN.md
+
+  - id: functional_testing
+    name: Functional Testing
+    agent: qa_tester
+    action: |
+      Execute functional tests:
+      - Test all user-facing features
+      - Verify expected behavior
+      - Test user workflows end-to-end
+      - Validate form submissions
+      - Test navigation and links
+      - Verify data persistence
+    required: true
+    depends_on: [test_plan]
+    inputs:
+      - TEST_PLAN.md
+    outputs:
+      - FUNCTIONAL_TEST_RESULTS.md
+    validation:
+      - type: output_exists
+        file: FUNCTIONAL_TEST_RESULTS.md
+
+  - id: ui_testing
+    name: UI/UX Testing
+    agent: qa_tester
+    action: |
+      Test user interface and experience:
+      - Visual consistency
+      - Responsive design across devices
+      - Browser compatibility
+      - Accessibility (WCAG)
+      - User interaction flows
+      - Error message clarity
+      - Loading states
+    required: true
+    depends_on: [test_plan]
+    outputs:
+      - UI_TEST_RESULTS.md
+
+  - id: integration_testing
+    name: Integration Testing
+    agent: qa_tester
+    action: |
+      Test component interactions:
+      - API integrations
+      - Database operations
+      - Third-party service integration
+      - Data flow between components
+      - Error handling in integrations
+    required: true
+    depends_on: [functional_testing]
+    outputs:
+      - INTEGRATION_TEST_RESULTS.md
+
+  - id: edge_case_testing
+    name: Edge Case and Error Testing
+    agent: qa_tester
+    action: |
+      Test edge cases and error scenarios:
+      - Invalid input handling
+      - Boundary conditions
+      - Empty states
+      - Network failures
+      - Timeout scenarios
+      - Concurrent operations
+    required: true
+    depends_on: [functional_testing]
+    outputs:
+      - EDGE_CASE_RESULTS.md
+
+  - id: performance_testing
+    name: Performance Testing
+    agent: qa_tester
+    action: |
+      Test application performance:
+      - Page load times
+      - Response times
+      - Resource usage
+      - Memory leaks
+      - Scalability
+    required: false
+    depends_on: [integration_testing]
+    outputs:
+      - PERFORMANCE_RESULTS.md
+
+  - id: final_report
+    name: Generate QA Report
+    agent: qa_tester
+    action: |
+      Create comprehensive QA report:
+      - Executive summary
+      - Test execution summary
+      - Pass/fail statistics
+      - Bug list with severity
+      - Test coverage metrics
+      - Recommendations
+      - Sign-off status
+    required: true
+    depends_on: [functional_testing, ui_testing, integration_testing, edge_case_testing]
+    inputs:
+      - TEST_PLAN.md
+      - FUNCTIONAL_TEST_RESULTS.md
+      - UI_TEST_RESULTS.md
+      - INTEGRATION_TEST_RESULTS.md
+      - EDGE_CASE_RESULTS.md
+      - PERFORMANCE_RESULTS.md
+    outputs:
+      - QA_REPORT.md
+    validation:
+      - type: output_exists
+        file: QA_REPORT.md
+      - type: min_lines
+        file: QA_REPORT.md
+        value: 100
+
+  - id: documentation
+    name: Document Testing Procedures
+    agent: docs_writer
+    action: |
+      Create testing documentation:
+      - Testing guide for developers
+      - Manual testing procedures
+      - Regression test checklist
+      - Bug reporting template
+    required: false
+    depends_on: [final_report]
+    outputs:
+      - TESTING_GUIDE.md
+
+# Hooks
+hooks:
+  pre_workflow:
+    - action: verify_testable
+      description: Ensure application is in testable state
+
+  post_workflow:
+    - action: proof_read
+      agent: docs_writer
+      description: Proof-read all test documentation
+
+    - action: git_commit
+      description: Commit test results
+      message: |
+        Complete testing suite workflow
+
+        Test execution completed with comprehensive results.
+
+        ✓ QA Testing Completed
+
+  on_error:
+    - action: save_partial_results
+      description: Save test results even if workflow incomplete
+
+# Quality gates
+quality_gates:
+  - name: critical_tests_pass
+    after_step: functional_testing
+    type: automatic
+    condition: critical_tests_passed
+    required: true
+
+  - name: no_critical_bugs
+    after_step: final_report
+    type: automatic
+    condition: no_critical_severity_bugs
+    required: true
+
+  - name: minimum_coverage
+    after_step: final_report
+    type: automatic
+    condition: test_coverage >= 80
+    required: false
+
+# Learning configuration
+learning:
+  enabled: true
+  track_metrics:
+    - test_execution_time
+    - bugs_found
+    - test_coverage
+    - false_positive_rate
+  improve_on:
+    - test_case_optimization
+    - coverage_improvement
+
+# Metadata
+tags:
+  - testing
+  - qa
+  - quality-assurance
+  - validation
+priority: high
+usage_count: 0
+success_rate: 0.0
+estimated_duration: 1500  # 25 minutes
