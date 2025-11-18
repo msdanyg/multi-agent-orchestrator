@@ -364,7 +364,7 @@
     "agent_name": "designer",
     "task_id": "20251117_220924_168523",
     "created_at": "2025-11-17T22:09:24.290789",
-    "status": "active",
+    "status": "failed",
     "working_dir": "projects/todo-test"
   }
 }

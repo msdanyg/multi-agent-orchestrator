@@ -1,0 +1,34 @@
+{
+  "execution_id": "20251117_220924_168523",
+  "workflow_name": "web-app-development",
+  "workflow_version": "1.0.0",
+  "task_description": "Build a simple todo list app",
+  "status": "failed",
+  "start_time": "2025-11-17T22:09:24.168566",
+  "end_time": "2025-11-17T22:14:24.306665",
+  "duration": 300.138099,
+  "steps": [
+    {
+      "step_id": "design",
+      "step_name": "Create Design Specifications",
+      "agent": "designer",
+      "status": "failed",
+      "start_time": "2025-11-17T22:09:24.278349",
+      "end_time": "2025-11-17T22:14:24.306505",
+      "duration": 300.028156,
+      "outputs": [],
+      "validation_passed": true,
+      "validation_errors": [],
+      "error_message": "Execution timeout (5 minutes)"
+    }
+  ],
+  "total_steps": 1,
+  "completed_steps": 0,
+  "failed_steps": 1,
+  "skipped_steps": 0,
+  "quality_gates_passed": [],
+  "quality_gates_failed": [],
+  "user_interventions": 0,
+  "outputs_generated": [],
+  "project_path": "projects/todo-test"
+}

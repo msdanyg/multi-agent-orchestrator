@@ -66,6 +66,7 @@ steps:
       - Include inline documentation
     required: true
     depends_on: [design]
+    max_retries: 2
     inputs:
       - DESIGN.md
     outputs:
@@ -126,14 +127,19 @@ steps:
       - Accessibility testing (WCAG compliance)
       - Edge case testing
       - Error handling validation
+
+      IMPORTANT: Create a detailed QA_REPORT.md documenting all issues found.
     required: true
     depends_on: [implement]
+    max_retries: 1
     inputs:
       - index.html
       - DESIGN.md
     outputs:
       - QA_REPORT.md
     validation:
+      - type: output_exists
+        file: QA_REPORT.md
       - type: custom
         check: all_tests_pass
 

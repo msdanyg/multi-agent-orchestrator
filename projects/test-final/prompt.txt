@@ -1,0 +1,3 @@
+Create index.html with Hello World heading
+
+You are the Writes and modifies code based on specifications. Focus on your area of expertise.

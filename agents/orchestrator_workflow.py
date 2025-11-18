@@ -209,15 +209,25 @@ class WorkflowOrchestrator(Orchestrator):
         failed_steps = 0
         results = {'outputs': [], 'step_results': []}
 
+        # Track iteration count per step to prevent infinite loops
+        step_iterations = {}
+
         for i, step in enumerate(steps, 1):
             step_id = step['id']
             step_name = step['name']
             agent_name = step['agent']
             required = step.get('required', True)
+            max_retries = step.get('max_retries', 0)  # Default: no retries
+
+            # Initialize iteration counter
+            if step_id not in step_iterations:
+                step_iterations[step_id] = 0
 
             print(f"{'─'*80}")
             print(f"📍 Step {i}/{len(steps)}: {step_name}")
             print(f"   Agent: {agent_name} | Required: {'Yes' if required else 'No'}")
+            if max_retries > 0:
+                print(f"   Max Retries: {max_retries} | Current Iteration: {step_iterations[step_id] + 1}")
 
             # Check if we should skip optional steps
             if not required and context and context.get('skip_optional_steps'):
@@ -241,50 +251,125 @@ class WorkflowOrchestrator(Orchestrator):
                     break
                 continue
 
-            # Execute step with agent
-            try:
-                step_result = await self._execute_single_agent(
-                    task_id=exec_id,
-                    agent=agent,
-                    task_description=step.get('action', task_description),
-                    context=context,
-                    use_tmux=use_tmux
-                )
+            # Retry loop for this step
+            step_success = False
+            step_validation_passed = False
+            last_error = None
 
-                if step_result.get('success'):
-                    # Record success
-                    outputs = step.get('outputs', [])
-                    self.workflow_history.complete_step(
-                        exec_id, step_id,
-                        outputs=outputs,
-                        validation_passed=True
+            while step_iterations[step_id] <= max_retries:
+                # Prepare context with previous iteration info
+                step_context = context.copy() if context else {}
+
+                # Add feedback from previous iteration
+                if step_iterations[step_id] > 0:
+                    print(f"\n   🔄 Retry attempt {step_iterations[step_id]}/{max_retries}")
+                    step_context['retry_attempt'] = step_iterations[step_id]
+                    step_context['previous_error'] = last_error
+
+                    # If there's a QA report with bugs, pass it as context
+                    if project_workspace and (project_workspace / 'QA_REPORT.md').exists():
+                        qa_report = (project_workspace / 'QA_REPORT.md').read_text()
+                        step_context['qa_feedback'] = qa_report
+                        step_context['task_context'] = f"""
+Previous iteration failed validation. QA Report:
+---
+{qa_report[:1000]}...
+
+Please fix the issues mentioned above and regenerate the files.
+"""
+
+                # Execute step with agent
+                try:
+                    # Enhance task description with context on retries
+                    enhanced_task = step.get('action', task_description)
+                    if step_iterations[step_id] > 0 and step_context.get('task_context'):
+                        enhanced_task = step_context['task_context'] + "\n\n" + enhanced_task
+
+                    step_result = await self._execute_single_agent(
+                        task_id=exec_id,
+                        agent=agent,
+                        task_description=enhanced_task,
+                        context=step_context,
+                        use_tmux=use_tmux
                     )
 
-                    results['step_results'].append(step_result)
-                    results['outputs'].extend(outputs)
+                    if step_result.get('success'):
+                        # Validate outputs
+                        outputs = step.get('outputs', [])
+                        created_files = step_result.get('files_created', [])
 
-                    completed_steps += 1
-                    print(f"   ✅ Step completed successfully")
+                        # Run validation if rules exist
+                        validation = step.get('validation', [])
+                        if validation and project_workspace:
+                            validation_result = self.workflow_executor._validate_step_outputs(
+                                step, created_files, project_workspace
+                            )
+                            step_validation_passed = validation_result['passed']
 
-                else:
-                    # Record failure
-                    error = step_result.get('error', 'Unknown error')
-                    self.workflow_history.fail_step(exec_id, step_id, error)
-                    failed_steps += 1
-                    print(f"   ❌ Step failed: {error}")
+                            if step_validation_passed:
+                                print(f"   ✅ Step completed and validated successfully")
+                            else:
+                                print(f"   ⚠️  Step completed but validation failed:")
+                                for error in validation_result['errors']:
+                                    print(f"      • {error}")
+                                last_error = '; '.join(validation_result['errors'])
+                        else:
+                            # No validation rules, consider it passed
+                            step_validation_passed = True
+                            print(f"   ✅ Step completed successfully")
 
-                    if required:
-                        print(f"   ⛔ Required step failed. Stopping workflow.")
+                        # If validation passed or no more retries, record success
+                        if step_validation_passed:
+                            self.workflow_history.complete_step(
+                                exec_id, step_id,
+                                outputs=outputs,
+                                validation_passed=True
+                            )
+                            results['step_results'].append(step_result)
+                            results['outputs'].extend(outputs)
+                            completed_steps += 1
+                            step_success = True
+                            break  # Exit retry loop
+                        else:
+                            # Validation failed, will retry if attempts remaining
+                            step_iterations[step_id] += 1
+                            if step_iterations[step_id] > max_retries:
+                                # No more retries
+                                self.workflow_history.fail_step(
+                                    exec_id, step_id,
+                                    f"Validation failed after {max_retries + 1} attempts: {last_error}"
+                                )
+                                failed_steps += 1
+                                break
+
+                    else:
+                        # Execution failed
+                        error = step_result.get('error', 'Unknown error')
+                        last_error = error
+                        print(f"   ❌ Step execution failed: {error}")
+
+                        step_iterations[step_id] += 1
+                        if step_iterations[step_id] > max_retries:
+                            # No more retries
+                            self.workflow_history.fail_step(exec_id, step_id, error)
+                            failed_steps += 1
+                            break
+
+                except Exception as e:
+                    last_error = str(e)
+                    print(f"   ❌ Step failed with exception: {e}")
+
+                    step_iterations[step_id] += 1
+                    if step_iterations[step_id] > max_retries:
+                        # No more retries
+                        self.workflow_history.fail_step(exec_id, step_id, str(e))
+                        failed_steps += 1
                         break
 
-            except Exception as e:
-                self.workflow_history.fail_step(exec_id, step_id, str(e))
-                failed_steps += 1
-                print(f"   ❌ Step failed with exception: {e}")
-
-                if required:
-                    print(f"   ⛔ Required step failed. Stopping workflow.")
-                    break
+            # Check if we should stop workflow due to failed required step
+            if not step_success and required:
+                print(f"   ⛔ Required step failed after {step_iterations[step_id]} attempts. Stopping workflow.")
+                break
 
         # Complete workflow execution
         success = failed_steps == 0 or (completed_steps > 0 and failed_steps < len(steps))

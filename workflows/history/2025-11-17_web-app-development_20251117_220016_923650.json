@@ -1,0 +1,34 @@
+{
+  "execution_id": "20251117_220016_923650",
+  "workflow_name": "web-app-development",
+  "workflow_version": "1.0.0",
+  "task_description": "Build a simple slinky game that runs in the browser",
+  "status": "failed",
+  "start_time": "2025-11-17T22:00:16.923689",
+  "end_time": "2025-11-17T22:05:17.061935",
+  "duration": 300.138246,
+  "steps": [
+    {
+      "step_id": "design",
+      "step_name": "Create Design Specifications",
+      "agent": "designer",
+      "status": "failed",
+      "start_time": "2025-11-17T22:00:17.037660",
+      "end_time": "2025-11-17T22:05:17.061715",
+      "duration": 300.024055,
+      "outputs": [],
+      "validation_passed": true,
+      "validation_errors": [],
+      "error_message": "Execution timeout (5 minutes)"
+    }
+  ],
+  "total_steps": 1,
+  "completed_steps": 0,
+  "failed_steps": 1,
+  "skipped_steps": 0,
+  "quality_gates_passed": [],
+  "quality_gates_failed": [],
+  "user_interventions": 0,
+  "outputs_generated": [],
+  "project_path": "projects/slinky-game-real"
+}

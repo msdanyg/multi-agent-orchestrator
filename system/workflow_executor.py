@@ -249,12 +249,13 @@ class WorkflowExecutor:
             }
 
     def _validate_step_outputs(self, step: Dict[str, Any],
-                               actual_outputs: List[str]) -> Dict[str, Any]:
+                               actual_outputs: List[str],
+                               workspace_path: Path = None) -> Dict[str, Any]:
         """Validate step outputs against validation rules."""
         validation_rules = step.get('validation', [])
 
         if not validation_rules:
-            return {'passed': True}
+            return {'passed': True, 'errors': []}
 
         errors = []
 
@@ -265,22 +266,83 @@ class WorkflowExecutor:
                 filename = rule.get('file', '')
                 if filename not in actual_outputs:
                     errors.append(f"Expected output file '{filename}' not generated")
+                elif workspace_path:
+                    file_path = workspace_path / filename
+                    if not file_path.exists():
+                        errors.append(f"Output file '{filename}' listed but doesn't exist")
 
             elif rule_type == 'min_lines':
                 filename = rule.get('file', '')
                 min_lines = rule.get('value', 0)
-                # TODO: Check actual file line count
-                pass
+                if workspace_path:
+                    file_path = workspace_path / filename
+                    if file_path.exists():
+                        try:
+                            line_count = len(file_path.read_text().splitlines())
+                            if line_count < min_lines:
+                                errors.append(f"File '{filename}' has {line_count} lines, expected at least {min_lines}")
+                        except Exception as e:
+                            errors.append(f"Error reading '{filename}': {str(e)}")
+                    else:
+                        errors.append(f"Cannot validate '{filename}': file not found")
 
             elif rule_type == 'syntax_valid':
                 language = rule.get('language', '')
-                # TODO: Check syntax validity
-                pass
+                filename = rule.get('file', '')
+                if workspace_path and filename:
+                    file_path = workspace_path / filename
+                    if file_path.exists():
+                        # Basic syntax validation
+                        if language == 'html':
+                            if not self._validate_html_syntax(file_path):
+                                errors.append(f"HTML syntax error in '{filename}'")
+                        elif language == 'json':
+                            if not self._validate_json_syntax(file_path):
+                                errors.append(f"JSON syntax error in '{filename}'")
+                    else:
+                        errors.append(f"Cannot validate '{filename}': file not found")
+
+            elif rule_type == 'custom':
+                check_name = rule.get('check', '')
+                if check_name == 'all_tests_pass':
+                    # This would check QA report for test results
+                    # For now, check if QA_REPORT.md mentions failures
+                    if workspace_path:
+                        qa_report = workspace_path / 'QA_REPORT.md'
+                        if qa_report.exists():
+                            content = qa_report.read_text().lower()
+                            if 'fail' in content or 'bug' in content or 'issue' in content:
+                                errors.append("QA testing found issues - check QA_REPORT.md")
 
         return {
             'passed': len(errors) == 0,
             'errors': errors
         }
+
+    def _validate_html_syntax(self, file_path: Path) -> bool:
+        """Basic HTML syntax validation."""
+        try:
+            content = file_path.read_text()
+            # Check for basic HTML structure
+            has_doctype = '<!doctype' in content.lower() or '<!DOCTYPE' in content
+            has_html_tag = '<html' in content
+            has_body_tag = '<body' in content
+            # Check for balanced tags (basic check)
+            open_tags = content.count('<html')
+            close_tags = content.count('</html>')
+            return has_doctype and has_html_tag and has_body_tag and open_tags == close_tags
+        except Exception:
+            return False
+
+    def _validate_json_syntax(self, file_path: Path) -> bool:
+        """Validate JSON syntax."""
+        try:
+            import json
+            content = file_path.read_text()
+            json.loads(content)
+            return True
+        except Exception:
+            return False
 
     def _check_quality_gate(self, gate: Dict[str, Any]) -> bool:
         """Check a quality gate."""
