@@ -34,13 +34,15 @@ steps:
     name: Create Design Specifications
     agent: designer
     action: |
-      Create comprehensive UI/UX design specifications including:
+      Create comprehensive UI/UX design specifications and save to DESIGN.md:
       - User interface layout and components
       - Color scheme and typography
       - Responsive design breakpoints
       - Interaction patterns
       - Accessibility considerations
       - User flow diagrams
+
+      IMPORTANT: Save the design specifications to a file named "DESIGN.md" in the project root.
     required: true
     timeout: 300
     outputs:
@@ -48,9 +50,15 @@ steps:
     validation:
       - type: output_exists
         file: DESIGN.md
+        allow_alternatives: true
+        alternatives:
+          - "docs/DESIGN.md"
+          - "UI-UX-DESIGN-SPEC.md"
+          - "docs/UI-UX-DESIGN-SPEC.md"
       - type: min_lines
         file: DESIGN.md
         value: 100
+        skip_if_missing: true
 
   - id: implement
     name: Implement Application

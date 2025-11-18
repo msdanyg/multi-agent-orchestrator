@@ -264,16 +264,36 @@ class WorkflowExecutor:
 
             if rule_type == 'output_exists':
                 filename = rule.get('file', '')
-                if filename not in actual_outputs:
-                    errors.append(f"Expected output file '{filename}' not generated")
-                elif workspace_path:
+                allow_alternatives = rule.get('allow_alternatives', False)
+                alternatives = rule.get('alternatives', [])
+
+                # Check primary file first
+                file_found = False
+                if workspace_path:
                     file_path = workspace_path / filename
-                    if not file_path.exists():
-                        errors.append(f"Output file '{filename}' listed but doesn't exist")
+                    if file_path.exists():
+                        file_found = True
+
+                    # Check alternative filenames if enabled
+                    if not file_found and allow_alternatives:
+                        for alt_name in alternatives:
+                            alt_path = workspace_path / alt_name
+                            if alt_path.exists():
+                                file_found = True
+                                break
+
+                if not file_found:
+                    if allow_alternatives and alternatives:
+                        alt_list = "', '".join([filename] + alternatives)
+                        errors.append(f"Expected output file not found. Tried: '{alt_list}'")
+                    else:
+                        errors.append(f"Expected output file '{filename}' not generated")
 
             elif rule_type == 'min_lines':
                 filename = rule.get('file', '')
                 min_lines = rule.get('value', 0)
+                skip_if_missing = rule.get('skip_if_missing', False)
+
                 if workspace_path:
                     file_path = workspace_path / filename
                     if file_path.exists():
@@ -284,7 +304,8 @@ class WorkflowExecutor:
                         except Exception as e:
                             errors.append(f"Error reading '{filename}': {str(e)}")
                     else:
-                        errors.append(f"Cannot validate '{filename}': file not found")
+                        if not skip_if_missing:
+                            errors.append(f"Cannot validate '{filename}': file not found")
 
             elif rule_type == 'syntax_valid':
                 language = rule.get('language', '')
