@@ -47,13 +47,22 @@ async def run_task(task: str, max_agents: int = 3, use_tmux: bool = True,
             context['project_name'] = project_name
             context['project_path'] = f"projects/{project_name}"
 
-        result = await orchestrator.execute_task(
-            task_description=task,
-            max_agents=max_agents,
-            use_tmux=use_tmux,
-            force_workflow=force_workflow if enable_workflows else None,
-            context=context if project_name else None
-        )
+        # Execute task with appropriate parameters based on orchestrator type
+        if enable_workflows:
+            result = await orchestrator.execute_task(
+                task_description=task,
+                max_agents=max_agents,
+                use_tmux=use_tmux,
+                force_workflow=force_workflow,
+                context=context if project_name else None
+            )
+        else:
+            result = await orchestrator.execute_task(
+                task_description=task,
+                max_agents=max_agents,
+                use_tmux=use_tmux,
+                context=context if project_name else None
+            )
 
         return result
 

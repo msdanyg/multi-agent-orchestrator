@@ -13,6 +13,8 @@ from .registry import AgentRegistry, AgentDefinition
 from .task_router import TaskRouter, TaskAnalysis, AgentAssignment
 from .tmux_manager import TmuxManager
 from .skills_system import SkillsSystem, TaskOutcome
+import subprocess
+import json
 
 
 class Orchestrator:
@@ -27,6 +29,10 @@ class Orchestrator:
     ):
         self.workspace_dir = Path(workspace_dir)
         self.workspace_dir.mkdir(parents=True, exist_ok=True)
+
+        # Paths
+        self.base_dir = Path(__file__).parent.parent
+        self.agents_instructions_dir = self.base_dir / ".claude" / "agents"
 
         # Initialize components
         self.registry = AgentRegistry(registry_path)
@@ -202,6 +208,15 @@ class Orchestrator:
 
         return results
 
+    def _load_agent_instructions(self, agent_name: str) -> Optional[str]:
+        """Load agent instructions from .claude/agents/ directory."""
+        instruction_file = self.agents_instructions_dir / f"{agent_name}.md"
+
+        if instruction_file.exists():
+            return instruction_file.read_text()
+
+        return None
+
     async def _execute_single_agent(
         self,
         task_id: str,
@@ -249,23 +264,89 @@ class Orchestrator:
 
                 result['session_id'] = session_id
 
-                # In real implementation, this would integrate with Claude Agent SDK
-                # For now, we'll simulate the execution
                 print(f"    📦 TMUX Session: {session_id}")
                 print(f"    📁 Workspace: {agent_workspace}")
                 print(f"    🛠️  Tools: {', '.join(agent.tools)}")
 
-                # Simulate execution
-                await asyncio.sleep(1)  # Placeholder for actual SDK integration
+                # Load agent instructions
+                agent_instructions = self._load_agent_instructions(agent.name)
+
+                if not agent_instructions:
+                    print(f"    ⚠️  No instructions found for agent: {agent.name}")
+                    agent_instructions = f"You are {agent.name}: {agent.description}"
+
+                # Combine instructions with task
+                full_prompt = f"""{agent_instructions}
+
+## Task
+
+{prompt}
+
+## Requirements
+
+- Work in the current directory: {agent_workspace}
+- Create all necessary files and implement the solution
+- Follow best practices and write clean, well-documented code
+- Ensure the implementation is complete and functional
+"""
+
+                # Write combined prompt
+                full_prompt_file = agent_workspace / "full_prompt.txt"
+                full_prompt_file.write_text(full_prompt)
+
+                # Execute Claude CLI
+                print(f"    🤖 Executing agent...")
+
+                try:
+                    # Build allowed tools list
+                    tools_arg = f"--allowed-tools {' '.join(agent.tools)}" if agent.tools else ""
+
+                    # Execute claude in the workspace
+                    cmd = f"cd {agent_workspace} && claude --print {tools_arg} < full_prompt.txt"
+
+                    process = await asyncio.create_subprocess_shell(
+                        cmd,
+                        stdout=asyncio.subprocess.PIPE,
+                        stderr=asyncio.subprocess.PIPE
+                    )
+
+                    stdout, stderr = await asyncio.wait_for(
+                        process.communicate(),
+                        timeout=300  # 5 minute timeout
+                    )
+
+                    if process.returncode == 0:
+                        # Success - check for created files
+                        created_files = list(agent_workspace.glob('**/*'))
+                        created_files = [f for f in created_files if f.is_file() and f.name not in ['prompt.txt', 'full_prompt.txt']]
+
+                        result['success'] = True
+                        result['output'] = stdout.decode('utf-8', errors='ignore')
+                        result['files_created'] = [str(f.relative_to(agent_workspace)) for f in created_files]
+
+                        print(f"    ✅ Agent completed successfully")
+                        print(f"    📄 Files created: {len(created_files)}")
+
+                    else:
+                        result['success'] = False
+                        result['error'] = stderr.decode('utf-8', errors='ignore')
+                        print(f"    ❌ Agent failed: {result['error'][:200]}")
+
+                except asyncio.TimeoutError:
+                    result['success'] = False
+                    result['error'] = "Execution timeout (5 minutes)"
+                    print(f"    ⏱️  Timeout after 5 minutes")
+
+                except Exception as e:
+                    result['success'] = False
+                    result['error'] = str(e)
+                    print(f"    ❌ Execution error: {e}")
 
                 # Mark session as completed
-                self.tmux_manager.mark_session_completed(session_id, success=True)
-
-                result['success'] = True
-                result['output'] = f"Task executed successfully by {agent.name}"
+                self.tmux_manager.mark_session_completed(session_id, success=result['success'])
 
             else:
-                # Direct execution (without TMUX)
+                # Direct execution (without TMUX) - use same Claude CLI approach
                 # This would integrate with Claude Agent SDK directly
                 print(f"    📁 Workspace: {agent_workspace}")
                 print(f"    🛠️  Tools: {', '.join(agent.tools)}")
