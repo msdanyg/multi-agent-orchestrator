@@ -14,5 +14,357 @@
     "created_at": "2025-11-16T22:58:23.974032",
     "status": "completed",
     "working_dir": "workspace/code_analyst/81952879"
+  },
+  "agent-designer-20251117_210723_541333-1763431643": {
+    "session_id": "agent-designer-20251117_210723_541333-1763431643",
+    "agent_name": "designer",
+    "task_id": "20251117_210723_541333",
+    "created_at": "2025-11-17T21:07:23.559506",
+    "status": "completed",
+    "working_dir": "workspace/designer/20251117_210723_541333"
+  },
+  "agent-code_writer-20251117_210723_541333-1763431644": {
+    "session_id": "agent-code_writer-20251117_210723_541333-1763431644",
+    "agent_name": "code_writer",
+    "task_id": "20251117_210723_541333",
+    "created_at": "2025-11-17T21:07:24.586034",
+    "status": "completed",
+    "working_dir": "workspace/code_writer/20251117_210723_541333"
+  },
+  "agent-code_analyst-20251117_210723_541333-1763431645": {
+    "session_id": "agent-code_analyst-20251117_210723_541333-1763431645",
+    "agent_name": "code_analyst",
+    "task_id": "20251117_210723_541333",
+    "created_at": "2025-11-17T21:07:25.615588",
+    "status": "completed",
+    "working_dir": "workspace/code_analyst/20251117_210723_541333"
+  },
+  "agent-security-20251117_210723_541333-1763431646": {
+    "session_id": "agent-security-20251117_210723_541333-1763431646",
+    "agent_name": "security",
+    "task_id": "20251117_210723_541333",
+    "created_at": "2025-11-17T21:07:26.648957",
+    "status": "completed",
+    "working_dir": "workspace/security/20251117_210723_541333"
+  },
+  "agent-qa_tester-20251117_210723_541333-1763431647": {
+    "session_id": "agent-qa_tester-20251117_210723_541333-1763431647",
+    "agent_name": "qa_tester",
+    "task_id": "20251117_210723_541333",
+    "created_at": "2025-11-17T21:07:27.681075",
+    "status": "completed",
+    "working_dir": "workspace/qa_tester/20251117_210723_541333"
+  },
+  "agent-docs_writer-20251117_210723_541333-1763431648": {
+    "session_id": "agent-docs_writer-20251117_210723_541333-1763431648",
+    "agent_name": "docs_writer",
+    "task_id": "20251117_210723_541333",
+    "created_at": "2025-11-17T21:07:28.708329",
+    "status": "completed",
+    "working_dir": "workspace/docs_writer/20251117_210723_541333"
+  },
+  "agent-designer-20251117_211721_234409-1763432241": {
+    "session_id": "agent-designer-20251117_211721_234409-1763432241",
+    "agent_name": "designer",
+    "task_id": "20251117_211721_234409",
+    "created_at": "2025-11-17T21:17:21.353917",
+    "status": "completed",
+    "working_dir": "projects/calculator-test"
+  },
+  "agent-code_writer-20251117_211721_234409-1763432242": {
+    "session_id": "agent-code_writer-20251117_211721_234409-1763432242",
+    "agent_name": "code_writer",
+    "task_id": "20251117_211721_234409",
+    "created_at": "2025-11-17T21:17:22.384325",
+    "status": "completed",
+    "working_dir": "projects/calculator-test"
+  },
+  "agent-code_analyst-20251117_211721_234409-1763432243": {
+    "session_id": "agent-code_analyst-20251117_211721_234409-1763432243",
+    "agent_name": "code_analyst",
+    "task_id": "20251117_211721_234409",
+    "created_at": "2025-11-17T21:17:23.408278",
+    "status": "completed",
+    "working_dir": "projects/calculator-test"
+  },
+  "agent-security-20251117_211721_234409-1763432244": {
+    "session_id": "agent-security-20251117_211721_234409-1763432244",
+    "agent_name": "security",
+    "task_id": "20251117_211721_234409",
+    "created_at": "2025-11-17T21:17:24.437460",
+    "status": "completed",
+    "working_dir": "projects/calculator-test"
+  },
+  "agent-qa_tester-20251117_211721_234409-1763432245": {
+    "session_id": "agent-qa_tester-20251117_211721_234409-1763432245",
+    "agent_name": "qa_tester",
+    "task_id": "20251117_211721_234409",
+    "created_at": "2025-11-17T21:17:25.483585",
+    "status": "completed",
+    "working_dir": "projects/calculator-test"
+  },
+  "agent-docs_writer-20251117_211721_234409-1763432246": {
+    "session_id": "agent-docs_writer-20251117_211721_234409-1763432246",
+    "agent_name": "docs_writer",
+    "task_id": "20251117_211721_234409",
+    "created_at": "2025-11-17T21:17:26.519808",
+    "status": "completed",
+    "working_dir": "projects/calculator-test"
+  },
+  "agent-designer-20251117_212427_788944-1763432667": {
+    "session_id": "agent-designer-20251117_212427_788944-1763432667",
+    "agent_name": "designer",
+    "task_id": "20251117_212427_788944",
+    "created_at": "2025-11-17T21:24:27.917146",
+    "status": "completed",
+    "working_dir": "projects/slinky"
+  },
+  "agent-code_writer-20251117_212427_788944-1763432668": {
+    "session_id": "agent-code_writer-20251117_212427_788944-1763432668",
+    "agent_name": "code_writer",
+    "task_id": "20251117_212427_788944",
+    "created_at": "2025-11-17T21:24:28.942278",
+    "status": "completed",
+    "working_dir": "projects/slinky"
+  },
+  "agent-code_analyst-20251117_212427_788944-1763432669": {
+    "session_id": "agent-code_analyst-20251117_212427_788944-1763432669",
+    "agent_name": "code_analyst",
+    "task_id": "20251117_212427_788944",
+    "created_at": "2025-11-17T21:24:29.966774",
+    "status": "completed",
+    "working_dir": "projects/slinky"
+  },
+  "agent-security-20251117_212427_788944-1763432670": {
+    "session_id": "agent-security-20251117_212427_788944-1763432670",
+    "agent_name": "security",
+    "task_id": "20251117_212427_788944",
+    "created_at": "2025-11-17T21:24:30.989174",
+    "status": "completed",
+    "working_dir": "projects/slinky"
+  },
+  "agent-qa_tester-20251117_212427_788944-1763432671": {
+    "session_id": "agent-qa_tester-20251117_212427_788944-1763432671",
+    "agent_name": "qa_tester",
+    "task_id": "20251117_212427_788944",
+    "created_at": "2025-11-17T21:24:32.017385",
+    "status": "completed",
+    "working_dir": "projects/slinky"
+  },
+  "agent-docs_writer-20251117_212427_788944-1763432673": {
+    "session_id": "agent-docs_writer-20251117_212427_788944-1763432673",
+    "agent_name": "docs_writer",
+    "task_id": "20251117_212427_788944",
+    "created_at": "2025-11-17T21:24:33.043314",
+    "status": "completed",
+    "working_dir": "projects/slinky"
+  },
+  "agent-designer-20251117_212603_355581-1763432763": {
+    "session_id": "agent-designer-20251117_212603_355581-1763432763",
+    "agent_name": "designer",
+    "task_id": "20251117_212603_355581",
+    "created_at": "2025-11-17T21:26:03.476912",
+    "status": "completed",
+    "working_dir": "projects/slinky-test"
+  },
+  "agent-code_writer-20251117_212603_355581-1763432764": {
+    "session_id": "agent-code_writer-20251117_212603_355581-1763432764",
+    "agent_name": "code_writer",
+    "task_id": "20251117_212603_355581",
+    "created_at": "2025-11-17T21:26:04.506305",
+    "status": "completed",
+    "working_dir": "projects/slinky-test"
+  },
+  "agent-code_analyst-20251117_212603_355581-1763432765": {
+    "session_id": "agent-code_analyst-20251117_212603_355581-1763432765",
+    "agent_name": "code_analyst",
+    "task_id": "20251117_212603_355581",
+    "created_at": "2025-11-17T21:26:05.528768",
+    "status": "completed",
+    "working_dir": "projects/slinky-test"
+  },
+  "agent-security-20251117_212603_355581-1763432766": {
+    "session_id": "agent-security-20251117_212603_355581-1763432766",
+    "agent_name": "security",
+    "task_id": "20251117_212603_355581",
+    "created_at": "2025-11-17T21:26:06.553340",
+    "status": "completed",
+    "working_dir": "projects/slinky-test"
+  },
+  "agent-qa_tester-20251117_212603_355581-1763432767": {
+    "session_id": "agent-qa_tester-20251117_212603_355581-1763432767",
+    "agent_name": "qa_tester",
+    "task_id": "20251117_212603_355581",
+    "created_at": "2025-11-17T21:26:07.583769",
+    "status": "completed",
+    "working_dir": "projects/slinky-test"
+  },
+  "agent-docs_writer-20251117_212603_355581-1763432768": {
+    "session_id": "agent-docs_writer-20251117_212603_355581-1763432768",
+    "agent_name": "docs_writer",
+    "task_id": "20251117_212603_355581",
+    "created_at": "2025-11-17T21:26:08.605681",
+    "status": "completed",
+    "working_dir": "projects/slinky-test"
+  },
+  "agent-code_analyst-20251117_212616_724947-1763432776": {
+    "session_id": "agent-code_analyst-20251117_212616_724947-1763432776",
+    "agent_name": "code_analyst",
+    "task_id": "20251117_212616_724947",
+    "created_at": "2025-11-17T21:26:16.856987",
+    "status": "completed",
+    "working_dir": "projects/docs-test"
+  },
+  "agent-docs_writer-20251117_212616_724947-1763432777": {
+    "session_id": "agent-docs_writer-20251117_212616_724947-1763432777",
+    "agent_name": "docs_writer",
+    "task_id": "20251117_212616_724947",
+    "created_at": "2025-11-17T21:26:17.881196",
+    "status": "completed",
+    "working_dir": "projects/docs-test"
+  },
+  "agent-docs_writer-20251117_212616_724947-1763432778": {
+    "session_id": "agent-docs_writer-20251117_212616_724947-1763432778",
+    "agent_name": "docs_writer",
+    "task_id": "20251117_212616_724947",
+    "created_at": "2025-11-17T21:26:18.898200",
+    "status": "completed",
+    "working_dir": "projects/docs-test"
+  },
+  "agent-docs_writer-20251117_212616_724947-1763432779": {
+    "session_id": "agent-docs_writer-20251117_212616_724947-1763432779",
+    "agent_name": "docs_writer",
+    "task_id": "20251117_212616_724947",
+    "created_at": "2025-11-17T21:26:19.922750",
+    "status": "completed",
+    "working_dir": "projects/docs-test"
+  },
+  "agent-docs_writer-20251117_212616_724947-1763432780": {
+    "session_id": "agent-docs_writer-20251117_212616_724947-1763432780",
+    "agent_name": "docs_writer",
+    "task_id": "20251117_212616_724947",
+    "created_at": "2025-11-17T21:26:20.949818",
+    "status": "completed",
+    "working_dir": "projects/docs-test"
+  },
+  "agent-docs_writer-20251117_212616_724947-1763432781": {
+    "session_id": "agent-docs_writer-20251117_212616_724947-1763432781",
+    "agent_name": "docs_writer",
+    "task_id": "20251117_212616_724947",
+    "created_at": "2025-11-17T21:26:21.979665",
+    "status": "completed",
+    "working_dir": "projects/docs-test"
+  },
+  "agent-docs_writer-20251117_212616_724947-1763432782": {
+    "session_id": "agent-docs_writer-20251117_212616_724947-1763432782",
+    "agent_name": "docs_writer",
+    "task_id": "20251117_212616_724947",
+    "created_at": "2025-11-17T21:26:23.003522",
+    "status": "completed",
+    "working_dir": "projects/docs-test"
+  },
+  "agent-designer-20251117_212732_846396-1763432852": {
+    "session_id": "agent-designer-20251117_212732_846396-1763432852",
+    "agent_name": "designer",
+    "task_id": "20251117_212732_846396",
+    "created_at": "2025-11-17T21:27:32.968931",
+    "status": "completed",
+    "working_dir": "projects/slinky-game"
+  },
+  "agent-code_writer-20251117_212732_846396-1763432853": {
+    "session_id": "agent-code_writer-20251117_212732_846396-1763432853",
+    "agent_name": "code_writer",
+    "task_id": "20251117_212732_846396",
+    "created_at": "2025-11-17T21:27:33.994112",
+    "status": "completed",
+    "working_dir": "projects/slinky-game"
+  },
+  "agent-code_analyst-20251117_212732_846396-1763432855": {
+    "session_id": "agent-code_analyst-20251117_212732_846396-1763432855",
+    "agent_name": "code_analyst",
+    "task_id": "20251117_212732_846396",
+    "created_at": "2025-11-17T21:27:35.020242",
+    "status": "completed",
+    "working_dir": "projects/slinky-game"
+  },
+  "agent-security-20251117_212732_846396-1763432856": {
+    "session_id": "agent-security-20251117_212732_846396-1763432856",
+    "agent_name": "security",
+    "task_id": "20251117_212732_846396",
+    "created_at": "2025-11-17T21:27:36.045882",
+    "status": "completed",
+    "working_dir": "projects/slinky-game"
+  },
+  "agent-qa_tester-20251117_212732_846396-1763432857": {
+    "session_id": "agent-qa_tester-20251117_212732_846396-1763432857",
+    "agent_name": "qa_tester",
+    "task_id": "20251117_212732_846396",
+    "created_at": "2025-11-17T21:27:37.074536",
+    "status": "completed",
+    "working_dir": "projects/slinky-game"
+  },
+  "agent-docs_writer-20251117_212732_846396-1763432858": {
+    "session_id": "agent-docs_writer-20251117_212732_846396-1763432858",
+    "agent_name": "docs_writer",
+    "task_id": "20251117_212732_846396",
+    "created_at": "2025-11-17T21:27:38.104203",
+    "status": "completed",
+    "working_dir": "projects/slinky-game"
+  },
+  "agent-code_writer-0bcc4453-1763434065": {
+    "session_id": "agent-code_writer-0bcc4453-1763434065",
+    "agent_name": "code_writer",
+    "task_id": "0bcc4453",
+    "created_at": "2025-11-17T21:47:45.789291",
+    "status": "failed",
+    "working_dir": "projects/test-final"
+  },
+  "agent-code_writer-fbb160f7-1763434134": {
+    "session_id": "agent-code_writer-fbb160f7-1763434134",
+    "agent_name": "code_writer",
+    "task_id": "fbb160f7",
+    "created_at": "2025-11-17T21:48:54.036904",
+    "status": "failed",
+    "working_dir": "projects/test-subprocess"
+  },
+  "agent-code_writer-55134fd7-1763434790": {
+    "session_id": "agent-code_writer-55134fd7-1763434790",
+    "agent_name": "code_writer",
+    "task_id": "55134fd7",
+    "created_at": "2025-11-17T21:59:50.789199",
+    "status": "completed",
+    "working_dir": "projects/debug-verbose"
+  },
+  "agent-designer-20251117_220016_923650-1763434817": {
+    "session_id": "agent-designer-20251117_220016_923650-1763434817",
+    "agent_name": "designer",
+    "task_id": "20251117_220016_923650",
+    "created_at": "2025-11-17T22:00:17.048706",
+    "status": "failed",
+    "working_dir": "projects/slinky-game-real"
+  },
+  "agent-code_analyst-af92287c-1763435149": {
+    "session_id": "agent-code_analyst-af92287c-1763435149",
+    "agent_name": "code_analyst",
+    "task_id": "af92287c",
+    "created_at": "2025-11-17T22:05:49.092319",
+    "status": "completed",
+    "working_dir": "projects/calculator-simple"
+  },
+  "agent-code_writer-20ccc53c-1763435267": {
+    "session_id": "agent-code_writer-20ccc53c-1763435267",
+    "agent_name": "code_writer",
+    "task_id": "20ccc53c",
+    "created_at": "2025-11-17T22:07:47.619564",
+    "status": "completed",
+    "working_dir": "projects/calculator-fixed"
+  },
+  "agent-designer-20251117_220924_168523-1763435364": {
+    "session_id": "agent-designer-20251117_220924_168523-1763435364",
+    "agent_name": "designer",
+    "task_id": "20251117_220924_168523",
+    "created_at": "2025-11-17T22:09:24.290789",
+    "status": "active",
+    "working_dir": "projects/todo-test"
   }
 }

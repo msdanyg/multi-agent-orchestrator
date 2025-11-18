@@ -321,21 +321,34 @@ class Orchestrator:
                     )
 
                     if process.returncode == 0:
+                        # DEBUG: Log what Claude returned
+                        stdout_text = stdout.decode('utf-8', errors='ignore')
+                        stderr_text = stderr.decode('utf-8', errors='ignore')
+                        print(f"    📤 Claude stdout ({len(stdout_text)} chars): {stdout_text[:500]}")
+                        if stderr_text:
+                            print(f"    📤 Claude stderr: {stderr_text[:500]}")
+                        print(f"    📁 Working dir: {agent_workspace.absolute()}")
+
                         # Success - check for created files
                         created_files = list(agent_workspace.glob('**/*'))
                         created_files = [f for f in created_files if f.is_file() and f.name not in ['prompt.txt', 'full_prompt.txt']]
 
                         result['success'] = True
-                        result['output'] = stdout.decode('utf-8', errors='ignore')
+                        result['output'] = stdout_text
                         result['files_created'] = [str(f.relative_to(agent_workspace)) for f in created_files]
 
                         print(f"    ✅ Agent completed successfully")
                         print(f"    📄 Files created: {len(created_files)}")
+                        if created_files:
+                            for f in created_files[:5]:  # Show first 5
+                                print(f"       - {f.name}")
 
                     else:
                         result['success'] = False
                         result['error'] = stderr.decode('utf-8', errors='ignore')
-                        print(f"    ❌ Agent failed: {result['error'][:200]}")
+                        print(f"    ❌ Agent failed (return code: {process.returncode})")
+                        print(f"    📤 stdout: {stdout.decode('utf-8', errors='ignore')[:500]}")
+                        print(f"    📤 stderr: {result['error'][:500]}")
 
                 except asyncio.TimeoutError:
                     result['success'] = False

@@ -146,15 +146,32 @@ class TaskRouter:
         analysis = self.analyze_task(task_description)
         assignments = []
 
+        # Check if task requires file creation/writing
+        creation_keywords = ['create', 'build', 'implement', 'write', 'generate', 'develop', 'make']
+        task_lower = task_description.lower()
+        requires_write = any(keyword in task_lower for keyword in creation_keywords)
+
         # Find agents matching required capabilities
         if analysis.required_capabilities:
             primary_agent = self.registry.find_best_agent(analysis.required_capabilities)
+
+            # If task requires writing but selected agent doesn't have Write tool,
+            # prefer code_writer instead
+            if requires_write and primary_agent and 'Write' not in primary_agent.tools:
+                # Try to get code_writer if it has matching capabilities
+                code_writer = self.registry.get_agent('code_writer')
+                if code_writer:
+                    # Check if code_writer has any matching capabilities
+                    matching_caps = set(analysis.required_capabilities) & set(code_writer.capabilities)
+                    if matching_caps or not analysis.required_capabilities:
+                        primary_agent = code_writer
+
             if primary_agent:
                 assignments.append(AgentAssignment(
                     agent=primary_agent,
                     priority="primary",
                     confidence_score=self._calculate_confidence(primary_agent, analysis),
-                    reason=f"Best match for {', '.join(analysis.required_capabilities[:2])}"
+                    reason=f"Best match for {', '.join(analysis.required_capabilities[:2]) if analysis.required_capabilities else 'implementation'}"
                 ))
 
         # Add supporting agents based on task type
