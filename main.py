@@ -20,7 +20,8 @@ from agents.orchestrator_workflow import WorkflowOrchestrator
 
 
 async def run_task(task: str, max_agents: int = 3, use_tmux: bool = True,
-                  enable_workflows: bool = True, force_workflow: str = None):
+                  enable_workflows: bool = True, force_workflow: str = None,
+                  project_name: str = None):
     """Execute a task using the multi-agent system"""
     try:
         # Use workflow-enabled orchestrator if workflows are enabled
@@ -40,11 +41,18 @@ async def run_task(task: str, max_agents: int = 3, use_tmux: bool = True,
                 max_parallel_agents=5
             )
 
+        # Prepare context with project information
+        context = {}
+        if project_name:
+            context['project_name'] = project_name
+            context['project_path'] = f"projects/{project_name}"
+
         result = await orchestrator.execute_task(
             task_description=task,
             max_agents=max_agents,
             use_tmux=use_tmux,
-            force_workflow=force_workflow if enable_workflows else None
+            force_workflow=force_workflow if enable_workflows else None,
+            context=context if project_name else None
         )
 
         return result
@@ -137,8 +145,14 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Execute a task (with workflow matching)
+  # Execute a task in a project (creates if needed)
+  python main.py task "Build a web application" --project my-app
+
+  # Execute with workflow matching
   python main.py task "Build a web application"
+
+  # Execute in project with specific workflow
+  python main.py task "Build calculator" --project calculator-app --workflow web-app-development
 
   # Force use of specific workflow
   python main.py task "Build calculator app" --workflow web-app-development
@@ -186,6 +200,11 @@ Examples:
         type=str,
         help='Force use of specific workflow (by name)'
     )
+    task_parser.add_argument(
+        '--project',
+        type=str,
+        help='Execute in specific project directory (creates if needed)'
+    )
 
     # Status command
     subparsers.add_parser('status', help='Show system status')
@@ -215,7 +234,8 @@ Examples:
             max_agents=args.max_agents,
             use_tmux=not args.no_tmux,
             enable_workflows=not args.no_workflows,
-            force_workflow=args.workflow
+            force_workflow=args.workflow,
+            project_name=args.project
         ))
         sys.exit(0 if result.get('success') else 1)
 

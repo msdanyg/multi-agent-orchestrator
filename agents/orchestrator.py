@@ -216,8 +216,13 @@ class Orchestrator:
         agent_start_time = time.time()
 
         # Create agent workspace
-        agent_workspace = self.workspace_dir / agent.name / task_id
-        agent_workspace.mkdir(parents=True, exist_ok=True)
+        # Check if context specifies a project workspace
+        if context and context.get('project_path'):
+            agent_workspace = Path(context['project_path'])
+            agent_workspace.mkdir(parents=True, exist_ok=True)
+        else:
+            agent_workspace = self.workspace_dir / agent.name / task_id
+            agent_workspace.mkdir(parents=True, exist_ok=True)
 
         # Generate specialized prompt
         prompt = self.router.generate_agent_prompt(agent, task_description, context)

@@ -17,6 +17,14 @@ from system.workflow_executor import WorkflowExecutor
 from system.workflow_history import WorkflowHistory
 from system.workflow_learning import WorkflowLearner
 
+# Import project management
+import importlib.util
+_project_cli_path = Path(__file__).parent.parent / "system" / "project-cli.py"
+_spec = importlib.util.spec_from_file_location("project_cli", _project_cli_path)
+_project_cli = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_project_cli)
+ProjectManager = _project_cli.ProjectManager
+
 
 class WorkflowOrchestrator(Orchestrator):
     """
@@ -51,6 +59,7 @@ class WorkflowOrchestrator(Orchestrator):
             self.workflow_executor = WorkflowExecutor()
             self.workflow_history = WorkflowHistory()
             self.workflow_learner = WorkflowLearner()
+            self.project_manager = ProjectManager()
 
             print("✅ Workflow system enabled")
 
@@ -167,6 +176,27 @@ class WorkflowOrchestrator(Orchestrator):
             task_description=task_description,
             project_path=context.get('project_path') if context else None
         )
+
+        # Handle project setup if project context provided
+        project_workspace = None
+        if context and context.get('project_name'):
+            project_name = context['project_name']
+
+            # Check if project exists, create if needed
+            project_info = self.project_manager.get_project_info(project_name)
+            if not project_info:
+                print(f"📁 Creating new project: {project_name}")
+                self.project_manager.create_project(
+                    name=project_name,
+                    template="web-app",
+                    init_git=True
+                )
+                print(f"   ✅ Project created at: projects/{project_name}/\n")
+            else:
+                print(f"📁 Using existing project: {project_name}\n")
+
+            # Set workspace to project directory
+            project_workspace = Path(self.workspace_dir).parent / "projects" / project_name
 
         # Execute workflow steps
         steps = workflow.get('steps', [])
