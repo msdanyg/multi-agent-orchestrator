@@ -298,21 +298,25 @@ class Orchestrator:
                 print(f"    🤖 Executing agent...")
 
                 try:
-                    # Build allowed tools list
-                    tools_arg = f"--allowed-tools {' '.join(agent.tools)}" if agent.tools else ""
+                    # Build command arguments
+                    cmd_args = ['claude', '--print']
 
-                    # Execute claude in the workspace using echo pipe (verified working approach)
-                    escaped_prompt = full_prompt.replace("'", "'\"'\"'")
-                    cmd = f"cd {agent_workspace} && echo '{escaped_prompt}' | claude --print {tools_arg}"
+                    # Add tool restrictions
+                    if agent.tools:
+                        cmd_args.append('--allowed-tools')
+                        cmd_args.append(' '.join(agent.tools))
 
-                    process = await asyncio.create_subprocess_shell(
-                        cmd,
+                    # Execute claude with stdin
+                    process = await asyncio.create_subprocess_exec(
+                        *cmd_args,
+                        stdin=asyncio.subprocess.PIPE,
                         stdout=asyncio.subprocess.PIPE,
-                        stderr=asyncio.subprocess.PIPE
+                        stderr=asyncio.subprocess.PIPE,
+                        cwd=str(agent_workspace)
                     )
 
                     stdout, stderr = await asyncio.wait_for(
-                        process.communicate(),
+                        process.communicate(input=full_prompt.encode('utf-8')),
                         timeout=300  # 5 minute timeout
                     )
 

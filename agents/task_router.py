@@ -161,6 +161,17 @@ class TaskRouter:
         supporting_agents = self._find_supporting_agents(analysis, exclude=[a.agent.name for a in assignments])
         assignments.extend(supporting_agents[:max_agents - len(assignments)])
 
+        # Fallback: if no agents selected, use code_writer as default
+        if not assignments:
+            code_writer = self.registry.get_agent('code_writer')
+            if code_writer:
+                assignments.append(AgentAssignment(
+                    agent=code_writer,
+                    priority="primary",
+                    confidence_score=0.0,
+                    reason="Default agent for general tasks"
+                ))
+
         return assignments
 
     def _calculate_confidence(self, agent: AgentDefinition, analysis: TaskAnalysis) -> float:
