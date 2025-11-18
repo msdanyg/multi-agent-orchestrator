@@ -97,11 +97,16 @@ class WorkflowOrchestrator(Orchestrator):
                 workflow_match = {'workflow': {'name': force_workflow}, 'score': 100, 'relevance': 'forced'}
 
             else:
-                # Find matching workflows
+                # Find matching workflows using keyword scoring
                 matches = self.workflow_executor.match_workflow(task_description, top_n=1)
 
                 if matches and matches[0]['score'] >= self.workflow_match_threshold:
                     workflow_match = matches[0]
+                else:
+                    # No keyword match - use intelligent analysis
+                    print(f"ℹ️  No keyword match found (threshold: {self.workflow_match_threshold})")
+                    print(f"🧠 Analyzing task to determine best workflow...\n")
+                    workflow_match = await self._intelligent_workflow_selection(task_description)
 
             # Execute with workflow if matched
             if workflow_match:
@@ -112,8 +117,8 @@ class WorkflowOrchestrator(Orchestrator):
                     use_tmux=use_tmux
                 )
             else:
-                print(f"ℹ️  No matching workflow found (threshold: {self.workflow_match_threshold})")
-                print(f"   Falling back to agent selection\n")
+                print(f"ℹ️  No suitable workflow found")
+                print(f"   Using direct agent selection\n")
 
         # Fall back to standard agent selection
         return await super().execute_task(
@@ -306,6 +311,69 @@ class WorkflowOrchestrator(Orchestrator):
             'outputs': results['outputs'],
             'results': results
         }
+
+    async def _intelligent_workflow_selection(self, task_description: str) -> Optional[Dict[str, Any]]:
+        """
+        Intelligently analyze task and select best workflow using semantic understanding.
+
+        Args:
+            task_description: The task to analyze
+
+        Returns:
+            Workflow match dictionary or None if no suitable workflow
+        """
+        # Get all available workflows
+        all_workflows = self.workflow_executor.workflow_manager.list_workflows(detailed=True)
+
+        if not all_workflows:
+            return None
+
+        # Create analysis prompt
+        workflows_info = []
+        for wf in all_workflows:
+            workflows_info.append(
+                f"- {wf['name']}: {wf.get('description', 'No description')}\n"
+                f"  Typical tasks: {', '.join(wf.get('task_types', [])[:3])}"
+            )
+
+        workflows_text = "\n".join(workflows_info)
+
+        # Use task router to analyze
+        analysis = self.router.analyze_task(task_description)
+
+        # Determine best workflow based on task characteristics
+        task_lower = task_description.lower()
+
+        # Pattern matching with semantic understanding
+        if any(keyword in task_lower for keyword in ['build', 'create', 'develop', 'implement', 'make']):
+            if any(keyword in task_lower for keyword in ['web', 'website', 'app', 'application', 'ui', 'interface', 'frontend', 'game', 'page']):
+                print(f"   💡 Task involves building a web application")
+                print(f"   ✓ Selected: web-app-development workflow\n")
+                return {'workflow': {'name': 'web-app-development'}, 'score': 8, 'relevance': 'intelligent'}
+
+            elif any(keyword in task_lower for keyword in ['api', 'endpoint', 'rest', 'graphql', 'service', 'backend']):
+                print(f"   💡 Task involves API development")
+                print(f"   ✓ Selected: api-development workflow\n")
+                return {'workflow': {'name': 'api-development'}, 'score': 8, 'relevance': 'intelligent'}
+
+        elif any(keyword in task_lower for keyword in ['test', 'qa', 'quality', 'verify', 'check', 'validate']):
+            print(f"   💡 Task involves testing and quality assurance")
+            print(f"   ✓ Selected: testing-suite workflow\n")
+            return {'workflow': {'name': 'testing-suite'}, 'score': 8, 'relevance': 'intelligent'}
+
+        elif any(keyword in task_lower for keyword in ['security', 'audit', 'vulnerability', 'penetration', 'secure']):
+            print(f"   💡 Task involves security analysis")
+            print(f"   ✓ Selected: security-audit workflow\n")
+            return {'workflow': {'name': 'security-audit'}, 'score': 8, 'relevance': 'intelligent'}
+
+        elif any(keyword in task_lower for keyword in ['document', 'docs', 'readme', 'guide', 'documentation']):
+            print(f"   💡 Task involves documentation")
+            print(f"   ✓ Selected: documentation workflow\n")
+            return {'workflow': {'name': 'documentation'}, 'score': 8, 'relevance': 'intelligent'}
+
+        # No suitable workflow found
+        print(f"   ℹ️  Task doesn't clearly match any workflow pattern")
+        return None
 
     def get_workflow_statistics(self) -> Dict[str, Any]:
         """Get workflow system statistics."""
