@@ -17,6 +17,13 @@ import shutil
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+# Import GitHub manager
+try:
+    from system.github_manager import GitHubManager
+    GITHUB_AVAILABLE = True
+except ImportError:
+    GITHUB_AVAILABLE = False
+
 class ProjectManager:
     """Manage multiple isolated projects"""
 
@@ -31,8 +38,12 @@ class ProjectManager:
         self.templates_dir.mkdir(exist_ok=True)
         self.shared_knowledge_dir.mkdir(exist_ok=True)
 
+        # Initialize GitHub manager if available
+        self.github_manager = GitHubManager(root_dir) if GITHUB_AVAILABLE else None
+
     def create_project(self, name: str, template: str = "web-app",
-                      description: str = "", init_git: bool = True) -> bool:
+                      description: str = "", init_git: bool = True,
+                      create_github: bool = False, github_private: bool = False) -> bool:
         """Create a new project from template"""
 
         project_path = self.projects_dir / name
@@ -108,6 +119,21 @@ class ProjectManager:
 
         print(f"└── ✅ Project created successfully!\n")
         print(f"📂 Location: {project_path}")
+
+        # Create GitHub repository if requested
+        if create_github and self.github_manager:
+            print(f"\n🔄 Creating GitHub repository...")
+            success, result = self.github_manager.create_github_repo(
+                name, description, github_private, project_path
+            )
+
+            if success:
+                print(f"✅ GitHub repository created!")
+                print(f"🔗 URL: {result}")
+            else:
+                print(f"⚠️  GitHub repository creation failed: {result}")
+                print(f"   You can create it later with: python system/github_manager.py create {name}")
+
         print(f"\n💡 Next steps:")
         print(f"   cd {project_path}")
         print(f"   python ../../main.py task \"Your task here\"")

@@ -1,0 +1,20 @@
+{
+  "enabled": true,
+  "auto_create": false,
+  "auto_push": false,
+  "default_visibility": "public",
+  "commit_messages": {
+    "initial": "Initial commit via Multi-Agent Orchestrator",
+    "workflow_complete": "Complete {workflow_name} workflow\\n\\n{summary}\\n\\n🤖 Generated with Multi-Agent Orchestrator",
+    "agent_update": "Update by {agent_name}\\n\\n{description}"
+  },
+  "repository_settings": {
+    "include_readme": true,
+    "include_license": false,
+    "gitignore_template": "Node",
+    "topics": ["multi-agent", "ai-generated"],
+    "has_issues": true,
+    "has_projects": true,
+    "has_wiki": false
+  }
+}
