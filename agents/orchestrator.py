@@ -301,8 +301,9 @@ class Orchestrator:
                     # Build allowed tools list
                     tools_arg = f"--allowed-tools {' '.join(agent.tools)}" if agent.tools else ""
 
-                    # Execute claude in the workspace
-                    cmd = f"cd {agent_workspace} && claude --print {tools_arg} < full_prompt.txt"
+                    # Execute claude in the workspace using echo pipe (verified working approach)
+                    escaped_prompt = full_prompt.replace("'", "'\"'\"'")
+                    cmd = f"cd {agent_workspace} && echo '{escaped_prompt}' | claude --print {tools_arg}"
 
                     process = await asyncio.create_subprocess_shell(
                         cmd,
