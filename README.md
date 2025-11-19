@@ -1,6 +1,10 @@
 # Multi-Agent Management Framework
 
+**Version:** 2.1 | **Status:** ✅ Production Verified | **Last Updated:** 2025-11-18
+
 An intelligent orchestration system that automatically delegates tasks to specialized Claude AI agents using TMUX for session management and the Claude Agent SDK for agent execution.
+
+> **NEW in v2.1:** Real multi-agent workflows verified with actual Claude API calls. See [RELEASE_NOTES_v2.1.md](RELEASE_NOTES_v2.1.md) for details.
 
 ## Features
 

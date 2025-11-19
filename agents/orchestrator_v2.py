@@ -165,7 +165,7 @@ class OrchestratorV2:
                         'tools': agent.tools,
                         'prompt': prompt,
                         'confidence': assignment.confidence_score,
-                        'reasoning': assignment.reasoning
+                        'reasoning': assignment.reason
                     })
 
                 steps.append({
@@ -187,7 +187,7 @@ class OrchestratorV2:
                         'tools': agent.tools,
                         'prompt': prompt,
                         'confidence': assignment.confidence_score,
-                        'reasoning': assignment.reasoning
+                        'reasoning': assignment.reason
                     })
 
         plan = {

@@ -11,7 +11,7 @@ class Calculator:
     """
     A simple calculator with basic arithmetic operations.
 
-    Supports addition, subtraction, multiplication, and division
+    Supports addition, subtraction, multiplication, division, and power
     with comprehensive error handling and input validation.
     """
 
@@ -101,6 +101,30 @@ class Calculator:
         self._update_state(result)
         return result
 
+    def power(self, base: Union[int, float], exponent: Union[int, float]) -> Union[int, float]:
+        """
+        Raise base to the power of exponent.
+
+        Args:
+            base: The base number
+            exponent: The exponent to raise the base to
+
+        Returns:
+            Result of base raised to exponent
+
+        Raises:
+            TypeError: If inputs are not numeric
+            ValueError: If operation results in invalid computation (e.g., 0^0)
+        """
+        self._validate_input(base, exponent)
+
+        if base == 0 and exponent == 0:
+            raise ValueError("0^0 is mathematically undefined")
+
+        result = base ** exponent
+        self._update_state(result)
+        return result
+
     def _validate_input(self, a: Union[int, float], b: Union[int, float]) -> None:
         """
         Validate that inputs are numeric.
@@ -143,4 +167,5 @@ if __name__ == "__main__":
     print(f"10 - 4 = {calc.subtract(10, 4)}")
     print(f"6 * 7 = {calc.multiply(6, 7)}")
     print(f"20 / 4 = {calc.divide(20, 4)}")
+    print(f"2 ^ 8 = {calc.power(2, 8)}")
     print(f"Operations performed: {calc.get_operation_count()}")
